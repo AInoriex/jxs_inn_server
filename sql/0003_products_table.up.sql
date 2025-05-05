@@ -1,8 +1,9 @@
 -- @Author AInoriex
 -- @Desc 用于记录商品基本信息
 -- @TODO 补充特定商品的属性信息(音声格式, 音声时长……)
+-- @Chge id int(11) -> varchar(16)
 CREATE TABLE `products` (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '商品唯一标识',
+  `id` varchar(16) NOT NULL COMMENT '商品唯一标识',
   `title` varchar(100) NOT NULL COMMENT '商品标题',
   `description` text COMMENT '商品描述',
   `price` decimal(10,2) NOT NULL COMMENT '商品价格',
