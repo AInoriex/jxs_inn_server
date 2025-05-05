@@ -67,7 +67,7 @@ func YltUserLogin(phone string, password string) (string, string, error) {
 		"c": 200,
 		"m": null,
 		"d": {
-			"token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiIxOTE2NDQxNTgxNTMyNzU4MDE3IiwiY3JlYXRlVGltZSI6MTY3NjMxNTE3NDExMjc3MTZ9.4RL29Qd-XKc0mpKlUFk7IJeldj2OAtCvXMfugmp129A"
+			"token": "user gt_token"
 		}
 	}
 	*/
@@ -96,21 +96,6 @@ func YltGetUserInfo(gt_token string, cookie string) error {
 		log.Error("YltGetUserInfo创建Request失败", zap.Error(err))
 		return err
 	}
-	// req.Header.Set("Accept", "*/*")
-	// req.Header.Set("Accept-Language", "zh-CN,zh;q=0.9")
-	// req.Header.Set("Cache-Control", "no-cache")
-	// req.Header.Set("Connection", "keep-alive")
-	// req.Header.Set("Referer", "https://yuanlitui.com/")
-	// req.Header.Set("Sec-Fetch-Dest", "empty")
-	// req.Header.Set("Sec-Fetch-Mode", "cors")
-	// req.Header.Set("Sec-Fetch-Site", "same-origin")
-	// req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36")
-	// req.Header.Set("content-type", "application/json;chartset=utf-8")
-	// req.Header.Set("sec-ch-ua", `"Not)A;Brand";v="99", "Google Chrome";v="127", "Chromium";v="127"`)
-	// req.Header.Set("sec-ch-ua-mobile", "?0")
-	// req.Header.Set("sec-ch-ua-platform", `"Windows"`)
-	// req.Header.Set("Cookie", "Hm_lvt_d489914e2e65c946cf3060f9534688f6=1745828422; HMACCOUNT=3165FE343E1CD2F4; Hm_lpvt_d489914e2e65c946cf3060f9534688f6=1745829833; Gt-Token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiIxOTE2NDQxNTgxNTMyNzU4MDE3IiwiY3JlYXRlVGltZSI6MTY3NjMxNTE3NDExMjc3MTZ9.4RL29Qd-XKc0mpKlUFk7IJeldj2OAtCvXMfugmp129A")
-	// req.Header.Set("gt-token", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiIxOTE2NDQxNTgxNTMyNzU4MDE3IiwiY3JlYXRlVGltZSI6MTY3NjMxNTE3NDExMjc3MTZ9.4RL29Qd-XKc0mpKlUFk7IJeldj2OAtCvXMfugmp129A")
 	YltRequestHeaders["Referer"] = []string{"https://yuanlitui.com/"}
 	YltRequestHeaders["Cookie"] = []string{cookie}
 	YltRequestHeaders["gt-token"] = []string{gt_token}
@@ -145,7 +130,7 @@ func YltGetUserInfo(gt_token string, cookie string) error {
 			"fansCount": 0
 		}
 	}
-	 */
+	*/
 
 	return nil
 }
@@ -153,7 +138,7 @@ func YltGetUserInfo(gt_token string, cookie string) error {
 // @Title	创建订单
 // @Method	POST
 // @Return	orderId, qrcodeBase64, error
-func YltCreateOrder(gt_token string, cookie string) (string, string, error){
+func YltCreateOrder(gt_token string, cookie string) (string, string, error) {
 	client := &http.Client{}
 	var data = strings.NewReader(`{"productId":"5517","payType":"alipay","affiliate":"","sceneType":"pc","customerPrice":0.5}`)
 	req, err := http.NewRequest("POST", "https://yuanlitui.com/api/order/createOrder", data)
@@ -161,23 +146,6 @@ func YltCreateOrder(gt_token string, cookie string) (string, string, error){
 		log.Error("", zap.Error(err))
 		return "", "", err
 	}
-	// req.Header.Set("gt-token", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiIxOTE1NjU2NjI3MDQzNTQwOTk0IiwiY3JlYXRlVGltZSI6MTY0OTYzNzIyMzUxNTUzODh9.oW79l2jVr5ZJtdv30zrtVV1rVnZf2JPIY43GsTpcs2U")
-	// req.Header.Set("Cookie", "Gt-Token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiIxOTE1NjU2NjI3MDQzNTQwOTk0IiwiY3JlYXRlVGltZSI6MTY0OTYzNzIyMzUxNTUzODh9.oW79l2jVr5ZJtdv30zrtVV1rVnZf2JPIY43GsTpcs2U; Hm_lvt_d489914e2e65c946cf3060f9534688f6=1745563074,1745720366; HMACCOUNT=94161F9CEEE3AB11; Hm_lpvt_d489914e2e65c946cf3060f9534688f6=1745749861")
-	// req.Header.Set("Referer", "https://yuanlitui.com/a/ar55")
-	// req.Header.Set("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6")
-	// req.Header.Set("Cache-Control", "no-cache")
-	// req.Header.Set("Connection", "keep-alive")
-	// req.Header.Set("Origin", "https://yuanlitui.com")
-	// req.Header.Set("Sec-Fetch-Dest", "empty")
-	// req.Header.Set("Sec-Fetch-Mode", "cors")
-	// req.Header.Set("Sec-Fetch-Site", "same-origin")
-	// req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0")
-	// req.Header.Set("accept", "application/json")
-	// req.Header.Set("content-type", "application/json;chartset=utf-8")
-	// req.Header.Set("sec-ch-ua", `"Microsoft Edge";v="135", "Not-A.Brand";v="8", "Chromium";v="135"`)
-	// req.Header.Set("sec-ch-ua-mobile", "?0")
-	// req.Header.Set("sec-ch-ua-platform", `"Windows"`)
-	// YltRequestHeaders["Referer"] = []string{"https://yuanlitui.com/"}
 	YltRequestHeaders["Cookie"] = []string{cookie}
 	YltRequestHeaders["gt-token"] = []string{gt_token}
 	req.Header = YltRequestHeaders
@@ -238,21 +206,6 @@ func YltCheckOrder(gt_token string, cookie string, orderId string) (payOk bool, 
 		log.Error("YltCheckOrder构建Request失败", zap.Error(err))
 		return false, err
 	}
-	// req.Header.Set("Accept", "*/*")
-	// req.Header.Set("Accept-Language", "zh-CN,zh;q=0.9")
-	// req.Header.Set("Cache-Control", "no-cache")
-	// req.Header.Set("Connection", "keep-alive")
-	// req.Header.Set("Cookie", "Hm_lvt_d489914e2e65c946cf3060f9534688f6=1745828422; HMACCOUNT=3165FE343E1CD2F4; Gt-Token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiIxOTE2NDQxNTgxNTMyNzU4MDE3IiwiY3JlYXRlVGltZSI6MTY3NjMxNTE3NDExMjc3MTZ9.4RL29Qd-XKc0mpKlUFk7IJeldj2OAtCvXMfugmp129A; Hm_lpvt_d489914e2e65c946cf3060f9534688f6=1745834144")
-	// req.Header.Set("Referer", "https://yuanlitui.com/a/ar55")
-	// req.Header.Set("Sec-Fetch-Dest", "empty")
-	// req.Header.Set("Sec-Fetch-Mode", "cors")
-	// req.Header.Set("Sec-Fetch-Site", "same-origin")
-	// req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36")
-	// req.Header.Set("content-type", "application/json;chartset=utf-8")
-	// req.Header.Set("gt-token", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiIxOTE2NDQxNTgxNTMyNzU4MDE3IiwiY3JlYXRlVGltZSI6MTY3NjMxNTE3NDExMjc3MTZ9.4RL29Qd-XKc0mpKlUFk7IJeldj2OAtCvXMfugmp129A")
-	// req.Header.Set("sec-ch-ua", `"Not)A;Brand";v="99", "Google Chrome";v="127", "Chromium";v="127"`)
-	// req.Header.Set("sec-ch-ua-mobile", "?0")
-	// req.Header.Set("sec-ch-ua-platform", `"Windows"`)
 	YltRequestHeaders["Cookie"] = []string{cookie}
 	YltRequestHeaders["gt-token"] = []string{gt_token}
 	req.Header = YltRequestHeaders
@@ -274,7 +227,7 @@ func YltCheckOrder(gt_token string, cookie string, orderId string) (payOk bool, 
 		Success Response Body:
 			{"s":true,"c":200,"m":null,"d":true}
 	*/
-	
+
 	// d bool 支付是否成功
 	checkOrderResp, err := simplejson.NewJson(bodyText)
 	if err != nil {
@@ -292,28 +245,18 @@ func YltCheckOrder(gt_token string, cookie string, orderId string) (payOk bool, 
 // TODO
 // @Title	获取购买的商品信息
 // @Method	POST
-func _YltGetPurchasedProductInfo() error{
+func _YltGetPurchasedProductInfo(gt_token string, cookie string, productId string) error {
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", "https://yuanlitui.com/api/product/getProductById?id=ar55", nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("https://yuanlitui.com/api/product/getProductById?id=%s", productId), nil)
+	// req, err := http.NewRequest("GET", "https://yuanlitui.com/api/product/getProductById?id=ar55", nil)
 	if err != nil {
 		log.Error("", zap.Error(err))
 		return err
 	}
-	req.Header.Set("Accept", "*/*")
-	req.Header.Set("Accept-Language", "zh-CN,zh;q=0.9")
-	req.Header.Set("Cache-Control", "no-cache")
-	req.Header.Set("Connection", "keep-alive")
-	req.Header.Set("Cookie", "Hm_lvt_d489914e2e65c946cf3060f9534688f6=1745828422; HMACCOUNT=3165FE343E1CD2F4; Gt-Token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiIxOTE2NDQxNTgxNTMyNzU4MDE3IiwiY3JlYXRlVGltZSI6MTY3NjMxNTE3NDExMjc3MTZ9.4RL29Qd-XKc0mpKlUFk7IJeldj2OAtCvXMfugmp129A; Hm_lpvt_d489914e2e65c946cf3060f9534688f6=1745834144")
-	req.Header.Set("Referer", "https://yuanlitui.com/a/ar55")
-	req.Header.Set("Sec-Fetch-Dest", "empty")
-	req.Header.Set("Sec-Fetch-Mode", "cors")
-	req.Header.Set("Sec-Fetch-Site", "same-origin")
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36")
-	req.Header.Set("content-type", "application/json;chartset=utf-8")
-	req.Header.Set("gt-token", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiIxOTE2NDQxNTgxNTMyNzU4MDE3IiwiY3JlYXRlVGltZSI6MTY3NjMxNTE3NDExMjc3MTZ9.4RL29Qd-XKc0mpKlUFk7IJeldj2OAtCvXMfugmp129A")
-	req.Header.Set("sec-ch-ua", `"Not)A;Brand";v="99", "Google Chrome";v="127", "Chromium";v="127"`)
-	req.Header.Set("sec-ch-ua-mobile", "?0")
-	req.Header.Set("sec-ch-ua-platform", `"Windows"`)
+	YltRequestHeaders["Referer"] = []string{fmt.Sprintf("https://yuanlitui.com/a/%s", productId)}
+	YltRequestHeaders["Cookie"] = []string{cookie}
+	YltRequestHeaders["gt-token"] = []string{gt_token}
+	req.Header = YltRequestHeaders
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err)
