@@ -5,15 +5,14 @@ import (
 	"eshop_server/utils/db"
 	"eshop_server/utils/log"
 	"go.uber.org/zap"
-	"gorm.io/gorm"
 	"time"
 )
 
 // @Title   获取数据记录
 // @Description 商品id
 // @Author  AInoriex  (2024/07/22 18:05)
-func GetProductById(id int64) (res *model.Products, err error) {
-	err = db.MysqlCon.Where("id = ?", id).Last(&res).Error
+func GetProductById(id string) (res *model.Products, err error) {
+	err = db.MysqlCon.Where("id = ?", id).First(&res).Error
 	if err != nil {
 		log.Error("GetProductById fail", zap.Error(err))
 		return nil, err
@@ -71,7 +70,7 @@ func UpdateProductsByField(m *model.Products, field []string) (res *model.Produc
 // @Description desc
 // @Author  AInoriex  (2024/07/22 18:05)
 func DeleteProducts(m *model.Products) (res *model.Products, err error) {
-	log.Info("DeleteProducts params", zap.Any("req", m))
+	log.Info("DeleteProducts params", zap.Any("m", m))
 	reply, err := GetProductById(m.Id)
 	if err != nil {
 		return
@@ -115,8 +114,7 @@ func UpdateProductsStatus(old_status int32, new_status int32) (rows int64, err e
 	tx := db.GetDb().Begin()
 
 	// 执行更新操作
-	var result *gorm.DB
-	result = tx.Model(&model.Products{}).Where("status = ?", old_status).Updates(map[string]interface{}{"status": new_status})
+	result := tx.Model(&model.Products{}).Where("status = ?", old_status).Updates(map[string]interface{}{"status": new_status})
 	// 检查事务执行情况
 	if result.Error != nil {
 		log.Errorf("UpdateProductsStatus tx update error, err:%s", result.Error.Error())

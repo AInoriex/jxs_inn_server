@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"eshop_server/dao"
 	"eshop_server/model"
-	"eshop_server/utils/common"
 	uerrors "eshop_server/utils/errors"
 	"eshop_server/utils/log"
 	"github.com/gin-gonic/gin"
@@ -21,28 +20,21 @@ func GetProductList(c *gin.Context) {
 	req := GetGinBody(c)
 	dataMap := make(map[string]interface{})
 	// attrMap := make(map[string]interface{})
-	log.Info("GetProductList params", zap.String("request body", string(req)))
+	log.Info("GetProductList 请求参数", zap.String("body", string(req)))
 
 	// GET参数解析
-	sign := c.DefaultQuery("sign", "0")
-	if !CheckSignParam(sign) {
-		log.Infof("GetProductList sign NOT pass. sign:%v", sign)
-		// Success(c, dataMap)
-		FailTrack(c, uerrors.Parse(uerrors.ErrApiParamSignNotPass.Error()).Code, uerrors.Parse(uerrors.ErrApiParamSignNotPass.Error()).Detail+"，别在这搞事哈", dataMap)
-		return
-	}
-
-	// 参数判断和预处理
-	// if reqbody.AK == "" && reqbody.SK == "" && reqbody.Cookies == "" {
-	// 	log.Error("GetProductList params error", zap.Any("reqbody", reqbody))
-	// 	Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+"鉴权信息无效")
+	// sign := c.DefaultQuery("sign", "0")
+	// if !CheckSignParam(sign) {
+	// 	log.Infof("GetProductList sign NOT pass. sign:%v", sign)
+	// 	// Success(c, dataMap)
+	// 	FailTrack(c, uerrors.Parse(uerrors.ErrApiParamSignNotPass.Error()).Code, uerrors.Parse(uerrors.ErrApiParamSignNotPass.Error()).Detail+"，别在这搞事哈", dataMap)
 	// 	return
 	// }
 
-	// 查询数据库获取商品
+	// 获取商品信息
 	resList, err := dao.GetProductsByStatus(model.ProductStatusOn)
 	if err != nil {
-		log.Error("GetProductList fail", zap.Error(err))
+		log.Error("GetProductList GetProductsByStatus fail", zap.Error(err))
 		Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
 		return
 	}
@@ -62,20 +54,20 @@ func CreateProduct(c *gin.Context) {
 	req := GetGinBody(c)
 	dataMap := make(map[string]interface{})
 	// attrMap := make(map[string]interface{})
-	log.Info("CreateProduct params", zap.String("request body", string(req)))
+	log.Info("CreateProduct 请求参数", zap.String("body", string(req)))
 
 	// JSON解析
 	var reqbody model.Products
 	err = json.Unmarshal(req, &reqbody)
 	if err != nil {
-		log.Error("CreateProduct Unmarshal fail", zap.Error(err))
+		log.Error("CreateProduct json解析失败", zap.Error(err))
 		Fail(c, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Code, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Detail)
 		return
 	}
 
 	// 参数判断和预处理
 	if reqbody.Title == "" || reqbody.Description == "" || reqbody.Price == 0 {
-		log.Error("CreateProduct params error", zap.Any("reqbody", reqbody))
+		log.Error("CreateProduct 商品参数无效", zap.Any("reqbody", reqbody))
 		Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail)
 		return
 	}
@@ -87,7 +79,7 @@ func CreateProduct(c *gin.Context) {
 	// 创建上架商品
 	res, err := dao.CreateProduct(&reqbody)
 	if err != nil {
-		log.Error("CreateProduct CreateProduct fail", zap.Error(err))
+		log.Error("CreateProduct 数据库创建商品失败", zap.Error(err))
 		Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail)
 		return
 	}
@@ -109,11 +101,10 @@ func RemoveProduct(c *gin.Context) {
 	req := GetGinBody(c)
 	dataMap := make(map[string]interface{})
 	// attrMap := make(map[string]interface{})
-	log.Info("GetProductList params", zap.String("request body", string(req)))
+	log.Info("GetProductList 请求参数", zap.String("body", string(req)))
 
 	// 查询商品ID信息
-	productID := c.Param("id")
-	ProductID := common.StringToInt64NotErr(productID)
+	ProductID := c.Param("id")
 
 	// 查询数据库中的商品信息
 	res, err := dao.GetProductById(ProductID)
@@ -127,7 +118,7 @@ func RemoveProduct(c *gin.Context) {
 	res.Status = model.ProductStatusOff
 	res, err = dao.UpdateProductsByField(res, []string{"status"})
 	if err != nil {
-		log.Error("RemoveProduct UpdateProductsByField fail", zap.Error(err))
+		log.Error("RemoveProduct 更新商品状态失败", zap.Error(err))
 		Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail)
 		return
 	}

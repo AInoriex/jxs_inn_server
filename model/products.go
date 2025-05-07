@@ -12,9 +12,13 @@ const (
 /*
 	按以下sql生成对应struct
 
+-- @Author AInoriex
+-- @Desc 用于记录商品基本信息
+-- @TODO 补充特定商品的属性信息(音声格式, 音声时长……)
+-- @Chge id int(11) -> varchar(16)
 CREATE TABLE `products` (
 
-	`id` int(11) NOT NULL AUTO_INCREMENT COMMENT '商品唯一标识',
+	`id` varchar(16) NOT NULL COMMENT '商品唯一标识',
 	`title` varchar(100) NOT NULL COMMENT '商品标题',
 	`description` text COMMENT '商品描述',
 	`price` decimal(10,2) NOT NULL COMMENT '商品价格',
@@ -30,7 +34,7 @@ CREATE TABLE `products` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='商品表';
 */
 type Products struct {
-	Id          int64     `json:"id" gorm:"column:id;primary_key;AUTO_INCREMENT;NOT NULL;comment:'自增唯一ID'"`
+	Id          string    `json:"id" gorm:"column:id;primary_key;NOT NULL;comment:'商品唯一标识'"`
 	Title       string    `json:"title" gorm:"column:title;default:NULL;comment:'商品标题'"`
 	Description string    `json:"description" gorm:"column:description;default:NULL;comment:'商品描述'"`
 	Price       float64   `json:"price" gorm:"column:price;default:NULL;comment:'商品价格'"`
