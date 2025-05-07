@@ -1,10 +1,10 @@
 -- 插入用户数据
-INSERT INTO `users` (`name`, `email`, `password`, `avatar_url`) VALUES
-('张三', 'zhangsan@example.com', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'https://example.com/avatar/1.jpg'),
-('李四', 'lisi@example.com', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'https://example.com/avatar/2.jpg'),
-('王五', 'wangwu@example.com', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'https://example.com/avatar/3.jpg'),
-('赵六', 'zhaoliu@example.com', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'https://example.com/avatar/4.jpg'),
-('孙七', 'sunqi@example.com', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'https://example.com/avatar/5.jpg');
+INSERT INTO `users` (`id`, `name`, `email`, `password`, `avatar_url`) VALUES
+('user_1', '张三', 'zhangsan@example.com', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'https://example.com/avatar/1.jpg'),
+('user_2', '李四', 'lisi@example.com', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'https://example.com/avatar/2.jpg'),
+('user_3', '王五', 'wangwu@example.com', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'https://example.com/avatar/3.jpg'),
+('user_4', '赵六', 'zhaoliu@example.com', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'https://example.com/avatar/4.jpg'),
+('user_5', '孙七', 'sunqi@example.com', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'https://example.com/avatar/5.jpg');
 
 -- 插入商品数据
 INSERT INTO `products` (`id`, `title`, `description`, `price`, `status`, `image_url`, `sales`) VALUES

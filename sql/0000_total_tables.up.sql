@@ -1,12 +1,13 @@
 -- @Author AInoriex
 -- @Desc 目前只支持邮箱一种方式登陆
+-- @Chge 2025年5月6日11点06分 id int(11) -> varchar(32)
 -- @TODO 用户角色：如果未来有管理员、普通用户等不同角色, 可以增加一个role字段, 用于区分用户权限。
 -- @TODO 联系方式：除了邮箱, 可以增加手机号字段, 方便用户接收验证码、订单通知等信息。
 -- @TODO 账户锁定机制：可以增加login_attempts字段记录登录失败次数, 当连续多次登录失败时, 暂时锁定账户, 防止暴力破解。
 -- @TTODO 会员信息：如果计划推出会员制度, 可以增加会员等级、会员积分等字段。
 -- @TTODO 登录方式：除了邮箱登录, 可以考虑支持社交媒体账号登录(如微信、QQ、微博等), 增加social_login_id字段存储第三方登录的唯一标识。
 CREATE TABLE `users` (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '用户唯一标识',
+  `id` varchar(32) NOT NULL COMMENT '用户唯一标识',
   `name` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '用户姓名',
   `email` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '用户邮箱',
   `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '用户密码(强加密算法存储, 如bcrypt、scrypt等)',
@@ -42,14 +43,16 @@ CREATE TABLE `products` (
 -- @Author AInoriex
 -- @Desc 用于记录用户购物车信息
 -- @Chge 2025年5月5日16点38分 取消外键users(id), products(id)
+-- @Chge 2025年5月6日14点46分 新增唯一键值user_id, product_id
 -- @TODO 如果音乐作品有不同的版本(如普通版、高清版、无损版), 可以在购物车表中增加version字段, 记录用户选择的商品版本。
 CREATE TABLE cart_items (
     `id` int(11) AUTO_INCREMENT COMMENT '购物车项目唯一标识',
-    `user_id` int(11) NOT NULL COMMENT '用户ID(关联用户表)',
+    `user_id` varchar(32) NOT NULL COMMENT '用户ID(关联用户表)',
     `product_id` varchar(16) NOT NULL COMMENT '商品ID(关联商品表)',
     `quantity` int(5) NOT NULL DEFAULT 1 COMMENT '购买数量',
     `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     PRIMARY KEY (id),
+    UNIQUE KEY `user_product` (`user_id`,`product_id`), -- 用户与商品绑定唯一键值
     -- FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     -- FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
     INDEX idx_user_id (user_id),
@@ -107,7 +110,7 @@ CREATE TABLE order_items (
 -- @Desc 用于记录用户购买历史。记录商品级别的信息, 便于分析用户对每个商品的购买行为分析和个性化推荐, 增强用户体验。
 CREATE TABLE purchase_history (
     `id` int(11) AUTO_INCREMENT COMMENT '购买历史唯一标识',
-    `user_id` int(11) NOT NULL COMMENT '用户ID(关联用户表)',
+    `user_id` varchar(32) NOT NULL COMMENT '用户ID(关联用户表)',
     `product_id` varchar(16) NOT NULL COMMENT '商品ID(关联商品表)',
     `quantity` int(8) NOT NULL COMMENT '购买数量',
     `purchase_date` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '购买日期',
