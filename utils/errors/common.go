@@ -35,9 +35,6 @@ const (
 	ErrCodeUploadFileEmpty          = 30113
 	ErrCodeUploadFileFail           = 30114
 	ErrCodeUploadTokenFail          = 30115
-	ErrCodeUserLoginFail            = 30116
-	ErrCodeUserNotFound             = 30117
-	ErrCodeUserExisted              = 30118
 )
 
 var (
@@ -59,7 +56,4 @@ var (
 	ErrUploadFileEmpty     = New("", "上传文件不存在", ErrCodeUploadFileEmpty)
 	ErrUploadFileFail      = New("", "上传文件失败", ErrCodeUploadFileFail)
 	ErrUploadTokenFail     = New("", "获取上传token失败", ErrCodeUploadTokenFail)
-	ErrUserLoginFail       = New("", "登陆失败，请检查用户名或密码", ErrCodeUserLoginFail)
-	ErrUserNotFound        = New("", "用户不存在", ErrCodeUserNotFound)
-	ErrUserExisted         = New("", "用户已存在", ErrCodeUserExisted)
 )

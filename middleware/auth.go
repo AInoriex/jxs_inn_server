@@ -11,7 +11,7 @@ import (
 
 // 自定义Claims结构
 type CustomClaims struct {
-	UserID string   `json:"user_id"`
+	UserId string   `json:"user_id"`
 	Roles  []string `json:"roles"`
 	jwt.StandardClaims
 }
@@ -25,7 +25,7 @@ var (
 )
 
 // 用户接口权限校验
-func AuthUser() gin.HandlerFunc {
+func ParseAuthorization() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 从Header获取Authorization
 		authHeader := c.GetHeader("Authorization")
@@ -51,54 +51,14 @@ func AuthUser() gin.HandlerFunc {
 
 		// 自动刷新机制
 		if claims.ExpiresAt-time.Now().Unix() < int64(refreshWindow.Seconds()) {
-			newToken, err := generateToken(claims.UserID, claims.Roles)
+			newToken, err := generateToken(claims.UserId, claims.Roles)
 			if err == nil {
 				c.Header("Set-Access-Token", newToken)
 			}
 		}
 
 		// 存储用户上下文
-		c.Set("userID", claims.UserID)
-		c.Set("roles", claims.Roles)
-		c.Next()
-	}
-}
-
-// 管理员接口权限校验
-func AuthAdmin() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		// 从Header获取Authorization
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "未提供认证凭证"})
-			return
-		}
-
-		// 检查Token格式：{TokenType} {TokenString}
-		parts := strings.SplitN(authHeader, " ", 2)
-		if !(len(parts) == 2 && parts[0] == TokenType) {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "认证头格式错误"})
-			return
-		}
-
-		// 校验Token
-		tokenString := parts[1]
-		claims, err := ValidateToken(tokenString)
-		if err != nil {
-			HandleTokenError(c, err)
-			return
-		}
-
-		// 临近token过期，自动刷新机制
-		if claims.ExpiresAt-time.Now().Unix() < int64(refreshWindow.Seconds()) {
-			newToken, err := generateToken(claims.UserID, claims.Roles)
-			if err == nil {
-				c.Header("Set-Access-Token", newToken) // 响应请求头设置新token
-			}
-		}
-
-		// 存储用户上下文
-		c.Set("userID", claims.UserID)
+		c.Set("userId", claims.UserId)
 		c.Set("roles", claims.Roles)
 		c.Next()
 	}
@@ -137,14 +97,14 @@ func ValidateToken(tokenString string) (*CustomClaims, error) {
 }
 
 // Token生成函数（供登录成功后调用）
-func GenerateToken(userID string, roles []string) (string, error) {
-	return generateToken(userID, roles)
+func GenerateToken(userId string, roles []string) (string, error) {
+	return generateToken(userId, roles)
 }
 
 // 私有生成函数
-func generateToken(userID string, roles []string) (string, error) {
+func generateToken(userId string, roles []string) (string, error) {
 	claims := CustomClaims{
-		UserID: userID,
+		UserId: userId,
 		Roles:  roles,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(tokenDuration).Unix(),
