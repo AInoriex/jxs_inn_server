@@ -24,8 +24,8 @@ const (
 )
 
 var (
-	ErrDbQueryFail                 = New("api", "数据查询失败", ErrCodeDbQueryFail)
-	ErrDbQueryNotFound             = New("api", "数据查询为空", ErrCodeDbQueryNotFound)
-	ErrApiParamSignNotPass         = New("api", "参数签名不通过", ErrCodeApiParamSignNotPass)
-	ErrDboperationFail             = New("api", "数据操作失败", ErrCodeDboperationFail)
+	ErrDbQueryFail         = New("api", "查询失败", ErrCodeDbQueryFail)
+	ErrDbQueryNotFound     = New("api", "查询为空", ErrCodeDbQueryNotFound)
+	ErrApiParamSignNotPass = New("api", "参数签名不通过", ErrCodeApiParamSignNotPass)
+	ErrDboperationFail     = New("api", "操作失败", ErrCodeDboperationFail)
 )

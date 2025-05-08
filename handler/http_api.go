@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	WebApiVersion = "eshop_api_v1.0"
+	ServerApiVersion = "eshop_api_v1"
 
 	KeyEventTracking          = "eventTracking"
 	KeyEventName              = "eventName"
@@ -39,7 +39,7 @@ type Response struct {
 
 // Success 响应成功 ErrorCode 为 0 表示成功
 func Success(c *gin.Context, data interface{}) {
-	c.Header("Live-Web-Version", WebApiVersion)
+	c.Header("Server-Api-Version", ServerApiVersion)
 	c.JSON(http.StatusOK, Response{
 		0,
 		data,
@@ -49,7 +49,7 @@ func Success(c *gin.Context, data interface{}) {
 
 // Fail 响应失败 ErrorCode 不为 0 表示失败
 func Fail(c *gin.Context, errorCode int32, msg string) {
-	c.Header("Live-Web-Version", WebApiVersion)
+	c.Header("Server-Api-Version", ServerApiVersion)
 	c.JSON(http.StatusOK, Response{
 		errorCode,
 		struct{}{},
@@ -58,36 +58,17 @@ func Fail(c *gin.Context, errorCode int32, msg string) {
 }
 
 // Fail 响应失败 ErrorCode 不为 0 表示失败
-func Fail2(c *gin.Context, errorCode int32, msg string, data interface{}) {
-	c.JSON(http.StatusOK, Response{
-		errorCode,
-		data,
-		msg,
-	})
-}
-
-// Fail 响应失败 ErrorCode 不为 0 表示失败
-func FailTrack(c *gin.Context, errorCode int32, msg string, attrMap map[string]interface{}) {
-	c.Header("Live-Web-Version", WebApiVersion)
-	attrMap[KeyEventAttrErrorCode] = errorCode
-	attrMap[KeyEventAttrErrorMsg] = msg
-	c.JSON(http.StatusOK, Response{
-		errorCode,
-		struct{}{},
-		msg,
-	})
-}
-
-// Fail 响应失败 ErrorCode 不为 0 表示失败
-func FailTrack2(c *gin.Context, errorCode int32, msg string, attrMap map[string]interface{}, dataMap map[string]interface{}) {
-	c.Header("Live-Web-Version", WebApiVersion)
-	attrMap[KeyEventAttrErrorCode] = errorCode
-	attrMap[KeyEventAttrErrorMsg] = msg
+func FailWithDataMap(c *gin.Context, errorCode int32, msg string, dataMap interface{}) {
 	c.JSON(http.StatusOK, Response{
 		errorCode,
 		dataMap,
 		msg,
 	})
+}
+
+func FailWithAuthorization(c *gin.Context) {
+	c.Header("Server-Api-Version", ServerApiVersion)
+	c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "权限认证失败"})
 }
 
 // @Title  获取请求Body参数
