@@ -1,10 +1,10 @@
 package middleware
 
 import (
+	"eshop_server/utils/config"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 )
@@ -18,10 +18,10 @@ type CustomClaims struct {
 
 // 安全配置（建议通过环境变量配置）
 var (
-	jwtSecret     = []byte(os.Getenv("JWT_SECRET")) // 32位以上安全密钥
-	tokenDuration = 18 * time.Minute                // Access Token有效期
-	refreshWindow = 5 * time.Minute                 // 刷新时间窗口
-	TokenType     = "Bearer"                        // token类型
+	jwtSecret     = []byte(config.CommonConfig.JwtSecret) // 32位以上安全密钥
+	tokenDuration = 18 * time.Minute                      // Access Token有效期
+	refreshWindow = 5 * time.Minute                       // 刷新时间窗口
+	TokenType     = "Bearer"                              // token类型
 )
 
 // 用户接口权限校验
@@ -126,7 +126,7 @@ func HandleTokenError(c *gin.Context, err error) {
 			return
 		}
 	}
-	c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "无效的认证凭证"})
+	c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "认证凭证无效"})
 }
 
 // 辅助函数：检查角色权限
