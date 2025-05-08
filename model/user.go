@@ -53,3 +53,9 @@ type UserRegisterReq struct {
 	Email          string `json:"email"`
 	HashedPassword string `json:"password"`
 }
+
+type GetUserInfoResp struct {
+	Name      string `json:"name"`
+	Email     string `json:"email"`
+	AvatarUrl string `json:"avatar_url"`
+}

@@ -12,13 +12,14 @@ import (
 	"github.com/golang-jwt/jwt"
 	"go.uber.org/zap"
 	"strings"
+	"net/http"
 )
 
 // @Summary      用户登陆
 // @Description  邮箱+密码登陆
 // @Param        json
-// @Produce      json
-// @Router       /v1/eshop_api/home/login [post]
+// @Response     json
+// @Router       /v1/eshop_api/auth/login [post]
 func UserLogin(c *gin.Context) {
 	var err error
 	req := GetGinBody(c)
@@ -82,8 +83,8 @@ func UserLogin(c *gin.Context) {
 // @Summary      用户注册
 // @Description  邮箱+密码注册
 // @Param        json
-// @Produce      json
-// @Router       /v1/eshop_api/home/register [post]
+// @Response     json
+// @Router       /v1/eshop_api/auth/register [post]
 func UserRegister(c *gin.Context) {
 	var err error
 	req := GetGinBody(c)
@@ -131,8 +132,8 @@ func UserRegister(c *gin.Context) {
 // @Summary      用户刷新token
 // @Description  传入旧token用于获取新token
 // @Param        json
-// @Produce      json
-// @Router       /v1/eshop_api/home/refresh_token [post]
+// @Response     json
+// @Router       /v1/eshop_api/auth/refresh_token [post]
 func UserRefreshToken(c *gin.Context) {
 	var err error
 	req := GetGinBody(c)
@@ -178,6 +179,38 @@ func UserRefreshToken(c *gin.Context) {
 	// Return the new token
 	dataMap["token_type"] = middleware.TokenType
 	dataMap["access_token"] = newToken
+	Success(c, dataMap)
+}
+
+// @Summary      获取用户信息
+// @Description  通过token认证身份并获取本人用户信息
+// @Response     json
+// @Router       /v1/eshop_api/user/info [get]
+func GetUserInfo(c *gin.Context){
+	var err error
+	dataMap := make(map[string]interface{})
+
+	// JWT用户查询&鉴权
+	userId := c.GetString("userId")
+	if userId == "" {
+		log.Error("GetCartList gin.Context用户ID为空.")
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "认证凭证无效"})
+		return
+	}
+	user, err := dao.GetUserById(userId)
+	if err != nil {
+		log.Error("GetCartList 获取用户信息失败", zap.String("user_id", userId))
+		Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
+		return
+	}
+
+	res := model.GetUserInfoResp {
+		Name: user.Name,
+		Email: user.Email,
+		AvatarUrl: user.AvatarUrl,
+	}
+	
+	dataMap["result"] = res
 	Success(c, dataMap)
 }
 
