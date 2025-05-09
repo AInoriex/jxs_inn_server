@@ -13,7 +13,7 @@ CREATE TABLE `users` (
   `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '用户密码(强加密算法存储, 如bcrypt、scrypt等)',
   `avatar_url` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '用户头像URL',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `updated_at` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`),
   KEY `idx_email` (`email`)
@@ -23,7 +23,8 @@ CREATE TABLE `users` (
 -- @Author AInoriex
 -- @Desc 用于记录商品基本信息
 -- @TODO 补充特定商品的属性信息(音声格式, 音声时长……)
--- @Chge id int(11) -> varchar(16)
+-- @Chge 2025年5月6日11点06分 id int(11) -> varchar(16)
+-- @Chge 2025年5月9日17点46分 新增字段external_id, external_link
 CREATE TABLE `products` (
   `id` varchar(16) NOT NULL COMMENT '商品唯一标识',
   `title` varchar(100) NOT NULL COMMENT '商品标题',
@@ -32,6 +33,8 @@ CREATE TABLE `products` (
   `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '商品状态(0下架, 1上架)',
   `image_url` varchar(255) DEFAULT NULL COMMENT '商品图片URL',
   `sales` int(11) DEFAULT '0' COMMENT '商品销量',
+  `external_id` varchar(64) DEFAULT NULL COMMENT '外部商品ID',
+  `external_link` varchar(64) DEFAULT NULL COMMENT '外部商品链接',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`),
   KEY `idx_title` (`title`),
@@ -70,17 +73,19 @@ CREATE TABLE cart_items (
 -- @Chge 2025年5月5日16点24分 取消外键users(id)
 -- @Chge 2025年5月5日16点28分 新增item_id关联order_items表:订单商品信息
 -- @Chge 2025年5月5日16点30分 新增payment_id关联payments表
+-- @Chge 2025年5月9日14点48分 item_id int(11) -> varchar(32); 新增updated_at字段
 -- @TODO 增加source字段, 记录订单来源(如网站、移动端、API等), 方便分析不同渠道的销售情况。
 CREATE TABLE orders (
     `id` varchar(16) NOT NULL COMMENT '订单唯一标识',
-    `user_id` int(11) NOT NULL COMMENT '用户ID(关联用户表)',
-    `item_id` int(11) NOT NULL COMMENT '订单明细ID(关联订单明细表)',
+    `user_id` varchar(32) NOT NULL COMMENT '用户ID(关联用户表)',
+    `item_id` varchar(32) NOT NULL COMMENT '订单明细ID(关联订单明细表)',
     `total_amount` decimal(10, 2) NOT NULL COMMENT '订单总金额',
     `discount` decimal(10, 2) DEFAULT 0.00 COMMENT '优惠券折扣金额',
     `final_amount` decimal(10, 2) NOT NULL COMMENT '最终支付金额(总金额 - 折扣)',
     `payment_id` varchar(255) NOT NULL DEFAULT '' COMMENT '支付ID(关联支付信息表)',
     `payment_status` tinyint(3) NOT NULL DEFAULT '0' COMMENT '支付状态(0已创建, 1待支付, 2已支付, 3支付超时, 4支付失败, 5取消支付)',
     `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (id),
     -- FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_user_id (user_id),
@@ -93,14 +98,16 @@ CREATE TABLE orders (
 -- @Chge 2025年5月5日16点24分 取消外键orders(id)
 -- @Chge 2025年5月5日16点24分 取消外键products(id)
 -- @Chge 2025年5月5日16点28分 取消order_id, 在orders表用字段item_id关联此表
+-- @Chge 2025年5月9日14点44分 取消id唯一键值束缚，同时id改为字符串类型
+-- @Chge 2025年5月9日14点45分 新增created_at字段
 -- @TODO 增加version字段(如果音乐作品有不同版本), 记录用户购买的商品版本。
 CREATE TABLE order_items (
-    `id` int(11) AUTO_INCREMENT COMMENT '订单明细唯一标识',
+    `id` varchar(32) NOT NULL COMMENT '订单明细ID(同一订单下明细ID相同, 关联订单表)',
     -- `order_id` varchar(16) NOT NULL COMMENT '订单ID(关联订单表)',
     `product_id` varchar(16) NOT NULL COMMENT '商品ID(关联商品表)',
     `quantity` int(8) NOT NULL COMMENT '购买数量',
     `price` decimal(10, 2) NOT NULL COMMENT '商品单价(记录下单时的价格)',
-    PRIMARY KEY (id),
+    `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     -- FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
     -- FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
     INDEX idx_product_id (product_id)
@@ -124,24 +131,18 @@ CREATE TABLE purchase_history (
 -- @Desc 用于记录支付渠道的支付结果。不使用触发器强制同步更新orders.status的状态。
 -- @Hint 移除了所有列定义中的`CHECK`约束。如果需要确保`final_amount`的值等于`total_amount`-`discount`，可以在应用程序逻辑中进行验证，或者考虑使用触发器来实现这一逻辑。
 -- @Chge 2025年5月5日16点24分 取消外键orders(id)
+-- @Chge 2025年5月9日17点34分 新增字段agent
+-- @Chge 2025年5月9日17点49分 调整字段名gateway->gateway_type
 CREATE TABLE payments (
     `id` varchar(255) NOT NULL COMMENT '支付唯一标识',
     `order_id` varchar(16) NOT NULL COMMENT '订单ID(关联订单表)',
     `final_amount` decimal(10, 2) NOT NULL COMMENT '最终支付金额',
-    `payment_method` varchar(255) NOT NULL COMMENT '支付方式(如信用卡、银行转账等)',
+    `method` varchar(255) NOT NULL COMMENT '支付方式(如扫码，积分，银行转账等)',
     `status` tinyint(3) NOT NULL DEFAULT 0 COMMENT '支付状态(0已创建, 1待支付, 2已支付, 3支付超时, 4支付失败, 5取消支付)',
-    `payment_gateway` tinyint(3) COMMENT '支付网关(10ylt, 11zfb, 12wx)',
-    `payment_gateway_id` varchar(255) COMMENT '支付网关ID(来自支付网关)',
+    `gateway_type` tinyint(3) NOT NULL DEFAULT 0 COMMENT '支付网关(10ylt, 11zfb, 12wx)',
+    `gateway_id` varchar(255) NOT NULL DEFAULT '' COMMENT '支付网关订单ID',
+    `agent` varchar(16) NULL COMMENT '支付代理人',
     `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `updated_at` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (id)
-    -- FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
-    -- FOREIGN KEY (status) REFERENCES orders(payment_status),
-    -- TRIGGER after_payment_status_update
-    --     AFTER UPDATE ON payments
-    --     FOR EACH ROW
-    --     BEGIN
-    --         UPDATE orders SET payment_status = NEW.status 
-    --         WHERE id = NEW.order_id;
-    --     END;
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='支付信息表';

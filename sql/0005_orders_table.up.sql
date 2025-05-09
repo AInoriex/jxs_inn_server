@@ -8,17 +8,19 @@
 -- @Chge 2025年5月5日16点24分 取消外键users(id)
 -- @Chge 2025年5月5日16点28分 新增item_id关联order_items表:订单商品信息
 -- @Chge 2025年5月5日16点30分 新增payment_id关联payments表
+-- @Chge 2025年5月9日14点48分 item_id int(11) -> varchar(32); 新增updated_at字段
 -- @TODO 增加source字段, 记录订单来源(如网站、移动端、API等), 方便分析不同渠道的销售情况。
 CREATE TABLE orders (
-    `id` varchar(16) COMMENT '订单唯一标识',
+    `id` varchar(16) NOT NULL COMMENT '订单唯一标识',
     `user_id` varchar(32) NOT NULL COMMENT '用户ID(关联用户表)',
-    `item_id` int(11) NOT NULL COMMENT '订单明细ID(关联订单明细表)',
+    `item_id` varchar(32) NOT NULL COMMENT '订单明细ID(关联订单明细表)',
     `total_amount` decimal(10, 2) NOT NULL COMMENT '订单总金额',
     `discount` decimal(10, 2) DEFAULT 0.00 COMMENT '优惠券折扣金额',
     `final_amount` decimal(10, 2) NOT NULL COMMENT '最终支付金额(总金额 - 折扣)',
     `payment_id` varchar(255) NOT NULL DEFAULT '' COMMENT '支付ID(关联支付信息表)',
     `payment_status` tinyint(3) NOT NULL DEFAULT '0' COMMENT '支付状态(0已创建, 1待支付, 2已支付, 3支付超时, 4支付失败, 5取消支付)',
     `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (id),
     -- FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_user_id (user_id),
@@ -31,14 +33,16 @@ CREATE TABLE orders (
 -- @Chge 2025年5月5日16点24分 取消外键orders(id)
 -- @Chge 2025年5月5日16点24分 取消外键products(id)
 -- @Chge 2025年5月5日16点28分 取消order_id, 在orders表用字段item_id关联此表
+-- @Chge 2025年5月9日14点44分 取消id唯一键值束缚，同时id改为字符串类型
+-- @Chge 2025年5月9日14点45分 新增created_at字段
 -- @TODO 增加version字段(如果音乐作品有不同版本), 记录用户购买的商品版本。
 CREATE TABLE order_items (
-    `id` int(11) AUTO_INCREMENT COMMENT '订单明细唯一标识',
+    `id` varchar(32) NOT NULL COMMENT '订单明细ID(同一订单下明细ID相同, 关联订单表)',
     -- `order_id` varchar(16) NOT NULL COMMENT '订单ID(关联订单表)',
     `product_id` varchar(16) NOT NULL COMMENT '商品ID(关联商品表)',
     `quantity` int(8) NOT NULL COMMENT '购买数量',
     `price` decimal(10, 2) NOT NULL COMMENT '商品单价(记录下单时的价格)',
-    PRIMARY KEY (id),
+    `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     -- FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
     -- FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
     INDEX idx_product_id (product_id)
