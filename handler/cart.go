@@ -109,12 +109,12 @@ func CreateCart(c *gin.Context) {
 	// HARDNEED 商品数量校验，数量只支持1个
 	if reqbody.Quantity != 1 {
 		log.Error("CreateCart 商品数量错误", zap.Int32("quantity", reqbody.Quantity))
-		Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":当前商品数量只支持单个")
+		Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":当前仅支持同种单件商品结算")
 		return
 	}
 
-	// 校验商品是否存在
-	_, err = dao.GetProductById(reqbody.ProductId)
+	// 校验商品是否有效
+	_, err = dao.CheckProductById(reqbody.ProductId)
 	if err!= nil {
 		log.Error("CreateCart 获取商品信息失败", zap.String("product_id", reqbody.ProductId))
 		Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail+":商品不存在")

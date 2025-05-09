@@ -21,6 +21,19 @@ func GetProductById(id string) (res *model.Products, err error) {
 	return
 }
 
+// @Title   检查商品是否有效
+// @Description 商品id
+// @Author  AInoriex  (2024/07/22 18:05)
+func CheckProductById(id string) (res *model.Products, err error) {
+	err = db.MysqlCon.Where("id = ? and status = ?", id, model.ProductStatusOn).First(&res).Error
+	if err != nil {
+		log.Error("CheckProductById fail", zap.Error(err))
+		return nil, err
+	}
+
+	return
+}
+
 // @Title   获取数据记录
 // @Description 商品状态status
 // @Author  AInoriex  (2024/07/22 18:05)
