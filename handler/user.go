@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"eshop_server/dao"
 	"eshop_server/middleware"
 	"eshop_server/model"
@@ -12,13 +13,12 @@ import (
 	"github.com/golang-jwt/jwt"
 	"go.uber.org/zap"
 	"strings"
-	"net/http"
 )
 
 // @Summary      用户登陆
 // @Description  邮箱+密码登陆
 // @Param        json
-// @Response     json
+// @Produce      json
 // @Router       /v1/eshop_api/auth/login [post]
 func UserLogin(c *gin.Context) {
 	var err error
@@ -83,7 +83,7 @@ func UserLogin(c *gin.Context) {
 // @Summary      用户注册
 // @Description  邮箱+密码注册
 // @Param        json
-// @Response     json
+// @Produce      json
 // @Router       /v1/eshop_api/auth/register [post]
 func UserRegister(c *gin.Context) {
 	var err error
@@ -132,7 +132,7 @@ func UserRegister(c *gin.Context) {
 // @Summary      用户刷新token
 // @Description  传入旧token用于获取新token
 // @Param        json
-// @Response     json
+// @Produce      json
 // @Router       /v1/eshop_api/auth/refresh_token [post]
 func UserRefreshToken(c *gin.Context) {
 	var err error
@@ -184,32 +184,26 @@ func UserRefreshToken(c *gin.Context) {
 
 // @Summary      获取用户信息
 // @Description  通过token认证身份并获取本人用户信息
-// @Response     json
+// @Produce      json
 // @Router       /v1/eshop_api/user/info [get]
-func GetUserInfo(c *gin.Context){
+func GetUserInfo(c *gin.Context) {
 	var err error
 	dataMap := make(map[string]interface{})
 
 	// JWT用户查询&鉴权
-	userId := c.GetString("userId")
-	if userId == "" {
-		log.Error("GetCartList gin.Context用户ID为空.")
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "认证凭证无效"})
-		return
-	}
-	user, err := dao.GetUserById(userId)
+	user, err := isValidUser(c)
 	if err != nil {
-		log.Error("GetCartList 获取用户信息失败", zap.String("user_id", userId))
-		Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
+		log.Error("GetUserInfo 非法用户", zap.Error(err))
+		FailWithAuthorization(c)
 		return
 	}
 
-	res := model.GetUserInfoResp {
-		Name: user.Name,
-		Email: user.Email,
+	res := model.GetUserInfoResp{
+		Name:      user.Name,
+		Email:     user.Email,
 		AvatarUrl: user.AvatarUrl,
 	}
-	
+
 	dataMap["result"] = res
 	Success(c, dataMap)
 }
@@ -234,4 +228,17 @@ func isValidPassword(password string) bool {
 		return false
 	}
 	return true
+}
+
+// 用户有效性判断
+func isValidUser(c *gin.Context) (user *model.User, err error) {
+	userId := c.GetString("userId")
+	if userId == "" {
+		return nil, errors.New("gin.Context用户ID为空")
+	}
+	user, err = dao.GetUserById(userId)
+	if err != nil {
+		return
+	}
+	return
 }

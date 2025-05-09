@@ -13,7 +13,7 @@ import (
 // @Summary      获取商品列表
 // @Description  获取当前所有上架的商品
 // @Param        sign
-// @Produce      json
+// @Response     json
 // @Router       /v1/eshop_api/product/list [get]
 func GetProductList(c *gin.Context) {
 	var err error
@@ -22,7 +22,7 @@ func GetProductList(c *gin.Context) {
 	// attrMap := make(map[string]interface{})
 	log.Info("GetProductList 请求参数", zap.String("body", string(req)))
 
-	// GET参数解析
+	// TODO 参数签名解析
 	// sign := c.DefaultQuery("sign", "0")
 	// if !CheckSignParam(sign) {
 	// 	log.Infof("GetProductList sign NOT pass. sign:%v", sign)
@@ -47,7 +47,7 @@ func GetProductList(c *gin.Context) {
 // @Summary      上架商品
 // @Description  创建新商品并上架
 // @Accept       json model.Products
-// @Produce      json
+// @Response     json
 // @Router       /v1/eshop_api/product/create [post]
 func CreateProduct(c *gin.Context) {
 	var err error
@@ -94,7 +94,7 @@ func CreateProduct(c *gin.Context) {
 // @Summary      下架商品
 // @Description  下架商品使页面不可见
 // @Param        product_id
-// @Produce      json
+// @Response     json
 // @Router       /v1/eshop_api/product/remove [put]
 func RemoveProduct(c *gin.Context) {
 	var err error
