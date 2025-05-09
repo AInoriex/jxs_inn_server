@@ -35,14 +35,14 @@ func InitRouter() {
 		user.Use(middleware.ParseAuthorization(), middleware.RequireRole("user"))
 		{
 			// 用户信息
-			// user.GET("/info", GetUserInfo)
+			user.GET("/info", GetUserInfo)
 			// user.PUT("/update", UpdateUserInfo)
 
 			// 购物车
 			user.GET("/cart/list", GetCartList)
-			// user.POST("/cart/create", CreateCart)
+			user.POST("/cart/create", CreateCart)
+			user.POST("/cart/remove", RemoveCart)
 			// user.PUT("/cart/update", UpdateCart)
-			// user.DELETE("/cart/delete", DeleteCart)
 
 			// 订单&支付
 			// user.GET("/order/list", GetOrderList)
@@ -61,6 +61,7 @@ func InitRouter() {
 		admin := api.Group("/admin")
 		admin.Use(middleware.ParseAuthorization(), middleware.RequireRole("admin"))
 		{
+			// 商品操作
 			product := api.Group("/product")
 			{
 				// product.GET("/list", GetProductList)
