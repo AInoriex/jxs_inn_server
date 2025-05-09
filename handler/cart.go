@@ -19,15 +19,9 @@ func GetCartList(c *gin.Context) {
 	dataMap := make(map[string]interface{})
 
 	// JWT用户查询&鉴权
-	userId := c.GetString("userId")
-	if userId == "" {
-		log.Error("GetCartList gin.Context用户ID为空")
-		FailWithAuthorization(c)
-		return
-	}
-	user, err := dao.GetUserById(userId)
+	user, err := isValidUser(c)
 	if err != nil {
-		log.Error("GetCartList 获取用户信息失败", zap.String("user_id", userId))
+		log.Error("GetCartList 非法用户", zap.Error(err))
 		FailWithAuthorization(c)
 		return
 	}
@@ -88,15 +82,9 @@ func CreateCart(c *gin.Context) {
 	log.Info("CreateProduct 请求参数", zap.String("body", string(req)))
 
 	// JWT用户查询&鉴权
-	userId := c.GetString("userId")
-	if userId == "" {
-		log.Error("CreateCart gin.Context用户ID为空")
-		FailWithAuthorization(c)
-		return
-	}
-	user, err := dao.GetUserById(userId)
+	user, err := isValidUser(c)
 	if err != nil {
-		log.Error("CreateCart 获取用户信息失败", zap.String("user_id", userId))
+		log.Error("CreateCart 非法用户", zap.Error(err))
 		FailWithAuthorization(c)
 		return
 	}
@@ -169,15 +157,9 @@ func RemoveCart(c *gin.Context) {
 	log.Info("RemoveCart 请求参数", zap.String("body", string(req)))
 
 	// JWT用户查询&鉴权
-	userId := c.GetString("userId")
-	if userId == "" {
-		log.Error("RemoveCart gin.Context用户ID为空")
-		FailWithAuthorization(c)
-		return
-	}
-	_, err = dao.GetUserById(userId)
+	user, err := isValidUser(c)
 	if err != nil {
-		log.Error("RemoveCart 获取用户信息失败", zap.String("user_id", userId))
+		log.Error("RemoveCart 非法用户", zap.Error(err))
 		FailWithAuthorization(c)
 		return
 	}
@@ -201,7 +183,7 @@ func RemoveCart(c *gin.Context) {
 	}
 
 	// 移除商品
-	err = dao.RemoveUserCartProduct(userId, reqbody.ProductId)
+	err = dao.RemoveUserCartProduct(user.Id, reqbody.ProductId)
 	if err != nil {
 		log.Error("RemoveCart 移除购物车商品失败", zap.Error(err))
 		Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail)
