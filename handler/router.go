@@ -46,7 +46,7 @@ func InitRouter() {
 
 			// 订单&支付
 			// user.GET("/order/list", GetOrderList)
-			// user.POST("/order/create", CreateOrder)
+			user.POST("/order/create", CreateOrder)
 			// user.PUT("/order/update", UpdateOrder)
 			// user.DELETE("/order/delete", DeleteOrder)
 			// user.POST("/order/pay", PayOrder)

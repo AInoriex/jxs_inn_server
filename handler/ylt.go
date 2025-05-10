@@ -10,10 +10,7 @@ import (
 	"time"
 )
 
-func YltOrderHandler() {
-	phone := "13292535169"
-	password := "1234qwer"
-
+func YltOrderFullHandler(phone string, password string) {
 	gt_token, cookie, err := YltUserLogin(phone, password)
 	if err != nil {
 		log.Error("YltOrderHandler登陆失败", zap.Error(err))
@@ -52,4 +49,21 @@ func YltOrderHandler() {
 		}
 	}
 	log.Success("YltOrderHandler用户已购买商品")
+}
+
+func YltCreateOrderHandler(phone string, password string) (string, string, error){
+	gt_token, cookie, err := YltUserLogin(phone, password)
+	if err != nil {
+		log.Error("YltOrderHandler登陆失败", zap.Error(err))
+		return "", "", err
+	}
+	time.Sleep(2 * time.Second)
+
+	orderId, base64, err := YltCreateOrder(gt_token, cookie)
+	if err != nil {
+		log.Error("YltOrderHandler创建订单失败", zap.Error(err))
+		return "", "", err
+	}
+	log.Infof("YltOrderHandler创建订单成功", zap.String("订单ID", orderId), zap.String("支付二维码", base64))
+	return orderId, base64, err
 }
