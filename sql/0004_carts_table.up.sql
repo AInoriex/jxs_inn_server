@@ -6,7 +6,7 @@
 CREATE TABLE cart_items (
     `id` int(11) AUTO_INCREMENT COMMENT '购物车项目唯一标识',
     `user_id` varchar(32) NOT NULL COMMENT '用户ID(关联用户表)',
-    `product_id` varchar(16) NOT NULL COMMENT '商品ID(关联商品表)',
+    `product_id` varchar(32) NOT NULL COMMENT '商品ID(关联商品表)',
     `quantity` int(5) NOT NULL DEFAULT 1 COMMENT '购买数量',
     `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     PRIMARY KEY (id),

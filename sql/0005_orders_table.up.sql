@@ -9,9 +9,10 @@
 -- @Chge 2025年5月5日16点28分 新增item_id关联order_items表:订单商品信息
 -- @Chge 2025年5月5日16点30分 新增payment_id关联payments表
 -- @Chge 2025年5月9日14点48分 item_id int(11) -> varchar(32); 新增updated_at字段
+-- @Chge 2025年5月13日10点09分 id varchar(16) -> varchar(32)
 -- @TODO 增加source字段, 记录订单来源(如网站、移动端、API等), 方便分析不同渠道的销售情况。
 CREATE TABLE orders (
-    `id` varchar(16) NOT NULL COMMENT '订单唯一标识',
+    `id` varchar(32) NOT NULL COMMENT '订单唯一标识',
     `user_id` varchar(32) NOT NULL COMMENT '用户ID(关联用户表)',
     `item_id` varchar(32) NOT NULL COMMENT '订单明细ID(关联订单明细表)',
     `total_amount` decimal(10, 2) NOT NULL COMMENT '订单总金额',
@@ -39,7 +40,7 @@ CREATE TABLE orders (
 CREATE TABLE order_items (
     `id` varchar(32) NOT NULL COMMENT '订单明细ID(同一订单下明细ID相同, 关联订单表)',
     -- `order_id` varchar(16) NOT NULL COMMENT '订单ID(关联订单表)',
-    `product_id` varchar(16) NOT NULL COMMENT '商品ID(关联商品表)',
+    `product_id` varchar(32) NOT NULL COMMENT '商品ID(关联商品表)',
     `quantity` int(8) NOT NULL COMMENT '购买数量',
     `price` decimal(10, 2) NOT NULL COMMENT '商品单价(记录下单时的价格)',
     `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -47,16 +48,3 @@ CREATE TABLE order_items (
     -- FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
     INDEX idx_product_id (product_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订单明细表';
-
--- @Author AInoriex
--- @Desc 用于记录用户购买历史。记录商品级别的信息, 便于分析用户对每个商品的购买行为分析和个性化推荐, 增强用户体验。
-CREATE TABLE purchase_history (
-    `id` int(11) AUTO_INCREMENT COMMENT '购买历史唯一标识',
-    `user_id` varchar(32) NOT NULL COMMENT '用户ID(关联用户表)',
-    `product_id` varchar(16) NOT NULL COMMENT '商品ID(关联商品表)',
-    `quantity` int(8) NOT NULL COMMENT '购买数量',
-    `purchase_date` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '购买日期',
-    PRIMARY KEY (id),
-    INDEX idx_user_id (user_id),
-    INDEX idx_purchase_date (purchase_date)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='购买历史订单表';

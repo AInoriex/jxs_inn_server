@@ -3,8 +3,9 @@
 -- @TODO 补充特定商品的属性信息(音声格式, 音声时长……)
 -- @Chge 2025年5月6日11点06分 id int(11) -> varchar(16)
 -- @Chge 2025年5月9日17点46分 新增字段external_id, external_link
+-- @Chge 2025年5月13日10点08分 id varchar(16) -> varchar(32)
 CREATE TABLE `products` (
-  `id` varchar(16) NOT NULL COMMENT '商品唯一标识',
+  `id` varchar(32) NOT NULL COMMENT '商品唯一标识',
   `title` varchar(100) NOT NULL COMMENT '商品标题',
   `description` text COMMENT '商品描述',
   `price` decimal(10,2) NOT NULL COMMENT '商品价格',
