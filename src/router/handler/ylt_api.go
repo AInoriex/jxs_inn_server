@@ -11,6 +11,8 @@ import (
 	"go.uber.org/zap"
 )
 
+// @Title	构建公共请求头
+// @Return	map[string][]string
 var YltRequestHeaders map[string][]string = map[string][]string{
 	"User-Agent":         {"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36"},
 	"content-type":       {"application/json;chartset=utf-8"},
@@ -138,9 +140,10 @@ func YltGetUserInfo(gt_token string, cookie string) error {
 // @Title	创建订单
 // @Method	POST
 // @Return	orderId, qrcodeBase64, error
-func YltCreateOrder(gt_token string, cookie string) (string, string, error) {
+func YltCreateOrder(gt_token string, cookie string, productId string, customerPrice float64) (string, string, error) {
 	client := &http.Client{}
-	var data = strings.NewReader(`{"productId":"5517","payType":"alipay","affiliate":"","sceneType":"pc","customerPrice":0.5}`)
+	// var data = strings.NewReader(`{"productId":"5517","payType":"alipay","affiliate":"","sceneType":"pc","customerPrice":0.5}`)
+	var data = strings.NewReader(fmt.Sprintf(`{"productId":"%s","payType":"alipay","affiliate":"","sceneType":"pc","customerPrice":%v}`, productId, customerPrice))
 	req, err := http.NewRequest("POST", "https://yuanlitui.com/api/order/createOrder", data)
 	if err != nil {
 		log.Error("", zap.Error(err))
@@ -151,16 +154,16 @@ func YltCreateOrder(gt_token string, cookie string) (string, string, error) {
 	req.Header = YltRequestHeaders
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Error("YltCreateOrder请求接口失败", zap.Error(err))
-		return "", "", fmt.Errorf("YltCreateOrder请求接口失败, %v", err)
+		log.Error("YltCreateOrder 请求接口失败", zap.Error(err))
+		return "", "", fmt.Errorf("YltCreateOrder 请求接口失败, %v", err)
 	}
 	defer resp.Body.Close()
 	bodyText, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Error("YltCreateOrder读取响应Body失败", zap.Error(err))
-		return "", "", fmt.Errorf("YltCreateOrder读取响应Body失败, %v", err)
+		log.Error("YltCreateOrder 读取响应Body失败", zap.Error(err))
+		return "", "", fmt.Errorf("YltCreateOrder 读取响应Body失败, %v", err)
 	}
-	log.Infof("YltCreateOrder创建订单成功, response body: %s\n", string(bodyText))
+	log.Infof("YltCreateOrder 创建订单成功, response body: %s\n", string(bodyText))
 	/* Success Response Body:
 	{
 		"s": true,

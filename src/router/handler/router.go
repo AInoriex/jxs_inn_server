@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"eshop_server/middleware"
+	"eshop_server/src/router/middleware"
 	"eshop_server/utils/config"
 	"eshop_server/utils/log"
 	"github.com/gin-gonic/gin"
@@ -45,11 +45,11 @@ func InitRouter() {
 			// user.PUT("/cart/update", UpdateCart)
 
 			// 订单&支付
-			// user.GET("/order/list", GetOrderList)
-			user.POST("/order/create", CreateOrder)
-			// user.PUT("/order/update", UpdateOrder)
-			// user.DELETE("/order/delete", DeleteOrder)
-			// user.POST("/order/pay", PayOrder)
+			user.GET("/order/status", GetUserOrderStatus)
+			// user.GET("/order/list", GetUserOrderList)
+			user.POST("/order/create", CreateUserOrder)
+			// user.PUT("/order/update", UpdateUserOrder)
+			// user.DELETE("/order/delete", DeleteUserOrder)
 
 			// 库存
 			// user.GET("/stock/list", GetStockList)

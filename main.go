@@ -1,7 +1,7 @@
 package main
 
 import (
-	"eshop_server/handler"
+	"eshop_server/src/router/handler"
 	"eshop_server/utils/config"
 	"eshop_server/utils/db"
 	"eshop_server/utils/log"

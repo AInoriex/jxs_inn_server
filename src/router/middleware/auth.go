@@ -19,7 +19,7 @@ type CustomClaims struct {
 // 安全配置（建议通过环境变量配置）
 var (
 	jwtSecret     = []byte(config.CommonConfig.JwtSecret) // 32位以上安全密钥
-	tokenDuration = 18 * time.Minute                      // Access Token有效期
+	tokenDuration = 30 * time.Minute                      // Token有效期
 	refreshWindow = 5 * time.Minute                       // 刷新时间窗口
 	TokenType     = "Bearer"                              // token类型
 )
@@ -30,7 +30,7 @@ func ParseAuthorization() gin.HandlerFunc {
 		// 从Header获取Authorization
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "未提供认证凭证"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "权限不足"})
 			return
 		}
 

@@ -2,15 +2,15 @@ package handler
 
 import (
 	"encoding/json"
-	"eshop_server/dao"
-	"eshop_server/model"
+	"eshop_server/src/router/dao"
+	"eshop_server/src/router/model"
 	uerrors "eshop_server/utils/errors"
 	"eshop_server/utils/log"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
-// @Summary      获取商品列表
+// @Title      获取商品列表
 // @Description  获取当前所有上架的商品
 // @Param        sign
 // @Response     json
@@ -44,7 +44,7 @@ func GetProductList(c *gin.Context) {
 	Success(c, dataMap)
 }
 
-// @Summary      上架商品
+// @Title      上架商品
 // @Description  创建新商品并上架
 // @Accept       json model.Products
 // @Response     json
@@ -91,7 +91,7 @@ func CreateProduct(c *gin.Context) {
 	Success(c, dataMap)
 }
 
-// @Summary      下架商品
+// @Title      下架商品
 // @Description  下架商品使页面不可见
 // @Param        product_id
 // @Response     json

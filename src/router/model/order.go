@@ -65,14 +65,16 @@ func (t *Order) TableName() string {
 -- @Chge 2025年5月5日16点24分 取消外键orders(id)
 -- @Chge 2025年5月5日16点24分 取消外键products(id)
 -- @Chge 2025年5月5日16点28分 取消order_id, 在orders表用字段item_id关联此表
+-- @Chge 2025年5月9日14点44分 取消id唯一键值束缚，同时id改为字符串类型
+-- @Chge 2025年5月9日14点45分 新增created_at字段
 -- @TODO 增加version字段(如果音乐作品有不同版本), 记录用户购买的商品版本。
 CREATE TABLE order_items (
-    `id` int(11) AUTO_INCREMENT COMMENT '订单明细唯一标识',
+    `id` varchar(32) NOT NULL COMMENT '订单明细ID(同一订单下明细ID相同, 关联订单表)',
     -- `order_id` varchar(16) NOT NULL COMMENT '订单ID(关联订单表)',
     `product_id` varchar(16) NOT NULL COMMENT '商品ID(关联商品表)',
     `quantity` int(8) NOT NULL COMMENT '购买数量',
     `price` decimal(10, 2) NOT NULL COMMENT '商品单价(记录下单时的价格)',
-    PRIMARY KEY (id),
+    `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     -- FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
     -- FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
     INDEX idx_product_id (product_id)
@@ -84,7 +86,6 @@ type OrderItem struct {
 	ProductId string    `json:"product_id" gorm:"column:product_id;NOT NULL;comment:'商品ID(关联商品表)'"`
 	Quantity  int32     `json:"quantity" gorm:"column:quantity;NOT NULL;comment:'购买数量'"`
 	Price     float64   `json:"price" gorm:"column:price;NOT NULL;comment:'商品单价(记录下单时的价格)'"`
-	UpdatedAt time.Time `json:"updated_at" gorm:"column:updated_at;autoUpdateTime;comment:'更新时间'"`
 	CreatedAt time.Time `json:"created_at" gorm:"column:created_at;autoCreateTime;comment:'创建时间'"`
 }
 

@@ -1,7 +1,7 @@
 package dao
 
 import (
-	"eshop_server/model"
+	"eshop_server/src/router/model"
 	"eshop_server/utils/db"
 	"eshop_server/utils/log"
 	"go.uber.org/zap"

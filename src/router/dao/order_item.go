@@ -1,20 +1,20 @@
 package dao
 
 import (
-	"eshop_server/model"
+	"eshop_server/src/router/model"
 	"eshop_server/utils/db"
 	"eshop_server/utils/log"
 	"go.uber.org/zap"
 	"time"
 )
 
-// @Title   获取用户所有订单记录
-// @Description 用户id
+// @Title   获取订单下所有物品记录
+// @Description 订单物品id
 // @Author  AInoriex  (2025/05/06 14:11)
-func GetOrdersByUserId(userId string) (res []*model.Order, err error) {
-	err = db.MysqlCon.Where("user_id = ?", userId).Find(&res).Error
+func GetOrderItemsById(id string) (res []*model.OrderItem, err error) {
+	err = db.MysqlCon.Where("id = ?", id).Find(&res).Error
 	if err != nil {
-		log.Error("GetOrdersByUserId fail", zap.Error(err))
+		log.Error("GetOrderItemsById fail", zap.Error(err))
 		return nil, err
 	}
 
@@ -24,10 +24,10 @@ func GetOrdersByUserId(userId string) (res []*model.Order, err error) {
 // @Title   获取用户单个订单订单记录
 // @Description 用户id，订单id
 // @Author  AInoriex  (2025/05/06 14:11)
-func GetOrderByUserIdAndProductId(userId string, orderId string) (res *model.Order, err error) {
+func GetOrderItemByUserIdAndProductId(userId string, orderId string) (res *model.OrderItem, err error) {
 	err = db.MysqlCon.Where("user_id = ? and id = ?", userId, orderId).First(&res).Error
 	if err != nil {
-		log.Error("GetOrderByUserIdAndProductId fail", zap.Error(err))
+		log.Error("GetOrderItemByUserIdAndProductId fail", zap.Error(err))
 		return nil, err
 	}
 
@@ -37,13 +37,13 @@ func GetOrderByUserIdAndProductId(userId string, orderId string) (res *model.Ord
 // @Title   创建数据记录
 // @Description desc
 // @Author  AInoriex  (2025/05/06 14:11)
-func CreateOrder(m *model.Order) (res *model.Order, err error) {
-	log.Infof("CreateOrder params, m:%+v", m)
+func CreateOrderItem(m *model.OrderItem) (res *model.OrderItem, err error) {
+	log.Infof("CreateOrderItem params, m:%+v", m)
 	m.CreatedAt = time.Now()
 
 	err, _ = db.Create(db.MysqlCon, &m)
 	if err != nil {
-		log.Error("CreateOrder fail", zap.Error(err))
+		log.Error("CreateOrderItem fail", zap.Error(err))
 		return m, err
 	}
 
@@ -53,13 +53,13 @@ func CreateOrder(m *model.Order) (res *model.Order, err error) {
 // @Title   更新订单记录
 // @Description 特定字段
 // @Author  AInoriex  (2025/05/08 14:30)
-func UpdateOrderByField(m *model.Order, field []string) (res *model.Order, err error) {
-	log.Infof("UpdateOrderByField params, m:%+v, field:%+v", m, field)
+func UpdateOrderItemByField(m *model.OrderItem, field []string) (res *model.OrderItem, err error) {
+	log.Infof("UpdateOrderItemByField params, m:%+v, field:%+v", m, field)
 	// Select 除 Omit() 外的所有字段（包括零值字段的所有字段）
-	err = db.MysqlCon.Model(&model.Order{}).Select(field).Omit("id").
+	err = db.MysqlCon.Model(&model.OrderItem{}).Select(field).Omit("id").
 		Where("id = ?", m.Id).Updates(m).Error
 	if err != nil {
-		log.Error("UpdateOrderByField fail ", zap.Any("m", m))
+		log.Error("UpdateOrderItemByField fail ", zap.Any("m", m))
 		return nil, err
 	}
 

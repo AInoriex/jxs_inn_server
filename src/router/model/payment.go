@@ -15,6 +15,7 @@ const (
 	PaymentStatusTimeOut   int32 = 3 // 3 支付状态:支付超时
 	PaymentStatusPayFail   int32 = 4 // 4 支付状态:支付失败
 	PaymentStatusPayCancel int32 = 5 // 5 支付状态:取消支付
+	PaymentStatusPaying    int32 = 6 // 6 支付状态:正在支付
 
 	PaymentGatewayTypeYlt    int32 = 10 // 10 支付类别:原力通
 	PaymentGatewayTypeAlipay int32 = 11 // 11 支付类别:支付宝
@@ -28,6 +29,7 @@ const (
 -- @Chge 2025年5月5日16点24分 取消外键orders(id)
 -- @Chge 2025年5月9日17点34分 新增字段agent
 -- @Chge 2025年5月9日17点49分 调整字段名gateway->gateway_type
+-- @Chge 2025年5月12日17点28分 新增字段purchased_at
 CREATE TABLE payments (
     `id` varchar(255) NOT NULL COMMENT '支付唯一标识',
     `order_id` varchar(16) NOT NULL COMMENT '订单ID(关联订单表)',
@@ -38,13 +40,14 @@ CREATE TABLE payments (
     `gateway_id` varchar(255) NOT NULL DEFAULT '' COMMENT '支付网关订单ID',
     `agent` varchar(16) NULL COMMENT '支付代理人',
     `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `updated_at` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `purchased_at` datetime DEFAULT NULL COMMENT '支付时间',
+    `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='支付信息表';
 */
 
 type Payment struct {
-	ID          string    `json:"id" gorm:"column:id;primary_key;NOT NULL;comment:'支付唯一标识'"`
+	Id          string    `json:"id" gorm:"column:id;primary_key;NOT NULL;comment:'支付唯一标识'"`
 	OrderID     string    `json:"order_id" gorm:"column:order_id;NOT NULL;comment:'订单ID(关联订单表)'"`
 	FinalAmount float64   `json:"final_amount" gorm:"column:final_amount;NOT NULL;comment:'最终支付金额'"`
 	Method      string    `json:"method" gorm:"column:method;NOT NULL;comment:'支付方式(如信用卡、银行转账等)'"`
@@ -53,6 +56,7 @@ type Payment struct {
 	GatewayID   string    `json:"gateway_id" gorm:"column:gateway_id;NOT NULL;default:'';comment:'支付网关ID(来自支付网关)'"`
 	Agent       string    `json:"agent" gorm:"column:agent;comment:'支付代理人'"`
 	CreatedAt   time.Time `json:"created_at" gorm:"column:created_at;default:CURRENT_TIMESTAMP;comment:'创建时间'"`
+	PurchasedAt time.Time `json:"purchased_at" gorm:"column:purchased_at;default:NULL;comment:'支付时间'"`
 	UpdatedAt   time.Time `json:"updated_at" gorm:"column:updated_at;default:NULL ON UPDATE CURRENT_TIMESTAMP;comment:'更新时间'"`
 }
 

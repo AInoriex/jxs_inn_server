@@ -2,15 +2,15 @@ package handler
 
 import (
 	"encoding/json"
-	"eshop_server/dao"
-	"eshop_server/model"
+	"eshop_server/src/router/dao"
+	"eshop_server/src/router/model"
 	uerrors "eshop_server/utils/errors"
 	"eshop_server/utils/log"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
-// @Summary      获取购物车列表
+// @Title      获取购物车列表
 // @Description  获取用户购物车列表
 // @Response     json
 // @Router       /v1/eshop_api/user/cart/list [get]
@@ -70,7 +70,7 @@ func GetCartList(c *gin.Context) {
 	Success(c, dataMap)
 }
 
-// @Summary      创建购物车商品
+// @Title      创建购物车商品
 // @Description	 用户挑选商品并放入购物车
 // @Body		 json
 // @Response     json
@@ -145,7 +145,7 @@ func CreateCart(c *gin.Context) {
 	Success(c, dataMap)
 }
 
-// @Summary      移除购物车商品
+// @Title      移除购物车商品
 // @Description	 用户移除购物车不需要的商品
 // @Body		 json
 // @Response     json

@@ -3,9 +3,9 @@ package handler
 import (
 	"encoding/json"
 	"errors"
-	"eshop_server/dao"
-	"eshop_server/middleware"
-	"eshop_server/model"
+	"eshop_server/src/router/dao"
+	"eshop_server/src/router/middleware"
+	"eshop_server/src/router/model"
 	uerrors "eshop_server/utils/errors"
 	"eshop_server/utils/log"
 	"eshop_server/utils/uuid"
@@ -15,7 +15,7 @@ import (
 	"strings"
 )
 
-// @Summary      用户登陆
+// @Title      用户登陆
 // @Description  邮箱+密码登陆
 // @Param        json
 // @Produce      json
@@ -54,7 +54,7 @@ func UserLogin(c *gin.Context) {
 	user, err := dao.GetUserByEmail(reqbody.Email)
 	if err != nil {
 		log.Error("UserLogin 查询用户失败", zap.Error(err))
-		Fail(c, uerrors.Parse(uerrors.ErrorGetAppUserFail.Error()).Code, uerrors.Parse(uerrors.ErrorGetAppUserFail.Error()).Detail)
+		Fail(c, uerrors.Parse(uerrors.ErrorUserNotFound.Error()).Code, uerrors.Parse(uerrors.ErrorUserNotFound.Error()).Detail)
 		return
 	}
 
@@ -80,7 +80,7 @@ func UserLogin(c *gin.Context) {
 	Success(c, dataMap)
 }
 
-// @Summary      用户注册
+// @Title      用户注册
 // @Description  邮箱+密码注册
 // @Param        json
 // @Produce      json
@@ -129,7 +129,7 @@ func UserRegister(c *gin.Context) {
 	Success(c, dataMap)
 }
 
-// @Summary      用户刷新token
+// @Title      用户刷新token
 // @Description  传入旧token用于获取新token
 // @Param        json
 // @Produce      json
@@ -182,7 +182,7 @@ func UserRefreshToken(c *gin.Context) {
 	Success(c, dataMap)
 }
 
-// @Summary      获取用户信息
+// @Title      获取用户信息
 // @Description  通过token认证身份并获取本人用户信息
 // @Produce      json
 // @Router       /v1/eshop_api/user/info [get]
