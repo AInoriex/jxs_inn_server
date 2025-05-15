@@ -50,15 +50,15 @@ type HttpServerConf struct {
 
 // 通用配置
 type CommonConf struct {
-	AppName    string                 `mapstructure:"app_name"`    // 应用名称
-	Env        string                 `mapstructure:"env"`         // 环境
-	Log        LogConfig              `mapstructure:"log"`         // 日志配置
-	OpenDbLog  bool                   `mapstructure:"open_db_log"` // 是否开启数据库日志
-	HuaweiOBS  HuaweiOBS              `mapstructure:"huawei_obs"`  // 华为obs配置
-	ApiHost    string                 `mapstructure:"api_host"`    // api域名
-	HttpServer HttpServerConf         `mapstructure:"http_server"` // http服务
-	JwtSecret  string                 `mapstructure:"jwt_secret"`  // jwt密钥
-	YltAccount map[string]interface{} `mapstructure:"ylt_account"` // ylt账号
+	AppName    string            `mapstructure:"app_name"`    // 应用名称
+	Env        string            `mapstructure:"env"`         // 环境
+	Log        LogConfig         `mapstructure:"log"`         // 日志配置
+	OpenDbLog  bool              `mapstructure:"open_db_log"` // 是否开启数据库日志
+	HuaweiOBS  HuaweiOBS         `mapstructure:"huawei_obs"`  // 华为obs配置
+	ApiHost    string            `mapstructure:"api_host"`    // api域名
+	HttpServer HttpServerConf    `mapstructure:"http_server"` // http服务
+	JwtSecret  string            `mapstructure:"jwt_secret"`  // jwt密钥
+	YltAccount map[string]string `mapstructure:"ylt_account"` // ylt账号
 }
 
 // 数据库配置
