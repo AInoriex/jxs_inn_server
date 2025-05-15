@@ -3,7 +3,7 @@ package middleware
 import (
 	// "net/http"
 	// "fmt"
-	"eshop_server/utils/log"
+	"eshop_server/src/utils/log"
 	"github.com/gin-gonic/gin"
 )
 

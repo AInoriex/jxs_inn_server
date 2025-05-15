@@ -2,8 +2,8 @@ package dao
 
 import (
 	"eshop_server/src/router/model"
-	"eshop_server/utils/db"
-	"eshop_server/utils/log"
+	"eshop_server/src/utils/db"
+	"eshop_server/src/utils/log"
 	"go.uber.org/zap"
 	"time"
 )

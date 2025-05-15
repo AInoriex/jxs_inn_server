@@ -3,7 +3,7 @@ package handler
 import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"eshop_server/utils/log"
+	"eshop_server/src/utils/log"
 	"net/http"
 )
 

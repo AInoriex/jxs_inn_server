@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"eshop_server/utils/config"
+	"eshop_server/src/utils/config"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 	"net/http"

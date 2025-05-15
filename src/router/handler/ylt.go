@@ -1,10 +1,10 @@
 package handler
 
 import (
-	"eshop_server/utils/config"
-	"eshop_server/utils/log"
-	"eshop_server/utils/qrcode"
-	"eshop_server/utils/utime"
+	"eshop_server/src/utils/config"
+	"eshop_server/src/utils/log"
+	"eshop_server/src/utils/qrcode"
+	"eshop_server/src/utils/utime"
 	"fmt"
 	"math/rand"
 	"os"

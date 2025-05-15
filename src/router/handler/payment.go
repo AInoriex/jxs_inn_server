@@ -4,8 +4,8 @@ import (
 	"errors"
 	"eshop_server/src/router/dao"
 	"eshop_server/src/router/model"
-	"eshop_server/utils/log"
-	"eshop_server/utils/uuid"
+	"eshop_server/src/utils/log"
+	"eshop_server/src/utils/uuid"
 	"go.uber.org/zap"
 )
 

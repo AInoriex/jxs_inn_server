@@ -1,7 +1,7 @@
 package log
 
 import (
-	"eshop_server/utils/config"
+	"eshop_server/src/utils/config"
 	"fmt"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"

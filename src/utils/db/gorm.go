@@ -8,7 +8,7 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"eshop_server/utils/config"
+	"eshop_server/src/utils/config"
 	"os"
 	"time"
 )

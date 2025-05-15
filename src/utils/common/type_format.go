@@ -1,7 +1,7 @@
 package common
 
 import (
-	"eshop_server/utils/log"
+	"eshop_server/src/utils/log"
 	"go.uber.org/zap"
 	"sort"
 	"strconv"

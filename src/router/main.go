@@ -2,11 +2,10 @@ package main
 
 import (
 	"eshop_server/src/router/handler"
-	"eshop_server/utils/config"
-	"eshop_server/utils/db"
-	"eshop_server/utils/log"
+	"eshop_server/src/utils/config"
+	"eshop_server/src/utils/db"
+	"eshop_server/src/utils/log"
 	"fmt"
-	// "time"
 )
 
 func main() {
@@ -19,7 +18,7 @@ func main() {
 
 	// 初始化日志
 	log.InitLogger()
-    log.Info("初始化日志成功")
+	log.Info("初始化日志成功")
 
 	// 初始化数据库
 	db.InitMysqlAll(config.DbConfig.Mysql.Host, config.DbConfig.Mysql.Db, config.DbConfig.Mysql.MaxCon, db.Con_Main, config.CommonConfig.OpenDbLog)

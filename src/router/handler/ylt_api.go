@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"eshop_server/utils/log"
+	"eshop_server/src/utils/log"
 	"fmt"
 	"io"
 	"net/http"

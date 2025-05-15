@@ -2,8 +2,8 @@ package handler
 
 import (
 	"eshop_server/src/router/middleware"
-	"eshop_server/utils/config"
-	"eshop_server/utils/log"
+	"eshop_server/src/utils/config"
+	"eshop_server/src/utils/log"
 	"github.com/gin-gonic/gin"
 )
 

@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"github.com/gin-gonic/gin"
-	"eshop_server/utils/log"
+	"eshop_server/src/utils/log"
 	"time"
 )
 

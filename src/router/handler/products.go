@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"eshop_server/src/router/dao"
 	"eshop_server/src/router/model"
-	uerrors "eshop_server/utils/errors"
-	"eshop_server/utils/log"
+	uerrors "eshop_server/src/utils/errors"
+	"eshop_server/src/utils/log"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
