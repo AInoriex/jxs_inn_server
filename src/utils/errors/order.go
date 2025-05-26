@@ -13,9 +13,15 @@ package errors
 //
 // user错误码 [32000,33000)
 const (
-	ErrorCodeUserNotPay int32 = 32001
+	ErrorCodeUserPayUnknown int32 = 32001
+	ErrorCodeUserNotPay     int32 = 32002
+	ErrorCodeUserPayFailed  int32 = 32003
+	ErrorCodeUserPayTimeout int32 = 32004
 )
 
 var (
-	ErrorUserNotPay = New("", "订单未支付", ErrorCodeUserNotPay)
+	ErrorUserPayUnknown = New("", "未知错误，请联系管理员", ErrorCodeUserPayUnknown)
+	ErrorUserNotPay     = New("", "订单未支付", ErrorCodeUserNotPay)
+	ErrorUserPayFailed  = New("", "订单支付失败，如有问题请联系管理员", ErrorCodeUserPayFailed)
+	ErrorUserPayTimeout = New("", "订单支付超时，请重新下单", ErrorCodeUserPayTimeout)
 )

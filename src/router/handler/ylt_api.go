@@ -198,13 +198,13 @@ func YltCreateOrder(gt_token string, cookie string, productId string, customerPr
 
 // @Title	轮询订单购买状态
 // @Method	POST
-func YltCheckOrder(gt_token string, cookie string, orderId string) (payOk bool, err error) {
-	if orderId == "" {
+func YltCheckOrder(gt_token string, cookie string, yltOrderId string) (payOk bool, err error) {
+	if yltOrderId == "" {
 		log.Error("YltCheckOrder订单ID为空")
 		return false, err
 	}
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", fmt.Sprintf("https://yuanlitui.com/api/order/checkProductOrder?orderNo=%s", orderId), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("https://yuanlitui.com/api/order/checkProductOrder?orderNo=%v", yltOrderId), nil)
 	if err != nil {
 		log.Error("YltCheckOrder构建Request失败", zap.Error(err))
 		return false, err

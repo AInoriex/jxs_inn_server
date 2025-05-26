@@ -68,7 +68,20 @@ func FailWithDataMap(c *gin.Context, errorCode int32, msg string, dataMap interf
 
 func FailWithAuthorization(c *gin.Context) {
 	c.Header("Server-Api-Version", ServerApiVersion)
-	c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "权限认证失败"})
+	c.AbortWithStatusJSON(http.StatusUnauthorized, Response{
+		-1,
+		struct{}{},
+		"权限验证失败",
+	})
+}
+
+func FailWithFileNotFound(c *gin.Context) {
+	c.Header("Server-Api-Version", ServerApiVersion)
+	c.AbortWithStatusJSON(http.StatusNotFound, Response{
+		-1,
+		struct{}{},
+		"文件不存在",
+	})	
 }
 
 // @Title  获取请求Body参数

@@ -48,7 +48,7 @@ CREATE TABLE payments (
 
 type Payment struct {
 	Id          string    `json:"id" gorm:"column:id;primary_key;NOT NULL;comment:'支付唯一标识'"`
-	OrderID     string    `json:"order_id" gorm:"column:order_id;NOT NULL;comment:'订单ID(关联订单表)'"`
+	OrderId     string    `json:"order_id" gorm:"column:order_id;NOT NULL;comment:'订单ID(关联订单表)'"`
 	FinalAmount float64   `json:"final_amount" gorm:"column:final_amount;NOT NULL;comment:'最终支付金额'"`
 	Method      string    `json:"method" gorm:"column:method;NOT NULL;comment:'支付方式(如信用卡、银行转账等)'"`
 	Status      int32     `json:"status" gorm:"column:status;NOT NULL;default:0;comment:'支付状态(0已创建, 1待支付, 2已支付, 3支付超时, 4支付失败, 5取消支付)'"`

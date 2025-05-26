@@ -18,8 +18,6 @@ func InitRouter() {
 		product := api.Group("/product")
 		{
 			product.GET("/list", GetProductList)
-			// product.POST("/create", CreateProduct) // TODO Warning
-			// product.PUT("/remove/:id", RemoveProduct) // TODO Warning
 		}
 
 		// 登陆路由
@@ -46,15 +44,12 @@ func InitRouter() {
 
 			// 订单&支付
 			user.GET("/order/status", GetUserOrderStatus)
-			// user.GET("/order/list", GetUserOrderList)
 			user.POST("/order/create", CreateUserOrder)
-			// user.PUT("/order/update", UpdateUserOrder)
+			// user.GET("/order/list", GetUserOrderList)
 			// user.DELETE("/order/delete", DeleteUserOrder)
 
-			// 库存
-			// user.GET("/stock/list", GetStockList)
-			// user.POST("/stock/create", CreateStock)
-			// user.PUT("/stock/update", UpdateStock)
+			// 藏品
+			user.GET("/inventory/list", GetInventoryList)
 		}
 
 		// 管理员路由

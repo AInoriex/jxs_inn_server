@@ -74,7 +74,7 @@ func NewMysql(args string, maxCon int, arr []interface{}, enable bool) *gorm.DB 
 		now := time.Now()
 		hook := &lumberjack.Logger{
 			// 日志存储位置
-			Filename:   fmt.Sprintf("%s/%04d%02d%02d%02d-%s.log", logPath, now.Year(), now.Month(), now.Day(), now.Hour(), "db"),
+			Filename:   fmt.Sprintf("%s/%04d%02d%02d-%02d/%s.log", logPath, now.Year(), now.Month(), now.Day(), now.Hour(), "db"),
 			// 日志文件大小单位: M
 			MaxSize:    500,                                       
 			// 备份数

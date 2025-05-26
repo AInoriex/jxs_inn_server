@@ -9,11 +9,6 @@ import (
 	"go.uber.org/zap"
 )
 
-const (
-	YltAccount1 = "10000000000000000000" // YLT测试账号1
-	YltAccount2 = "10000000000000000001" // YLT测试账号2
-)
-
 // @Author	AInoriex
 // @Desc	扫码支付流程
 // HARDNEED	当前仅支持YLT支付
@@ -33,7 +28,7 @@ func QrcodeOrderPaymentHandler(reqbody model.CreateOrderReq, order *model.Order,
 	}
 
 	// 获取YLT账号
-	phone, password, err := GetYltRandomAccount()
+	phone, password, err := GetYltRandomAgent()
 	if err != nil || phone == "" || password == "" {
 		log.Error("QrcodeOrderPaymentHandler 获取YLT账号失败", zap.Error(err))
 		return "", errors.New("创建订单失败，请联系客服")
@@ -52,7 +47,7 @@ func QrcodeOrderPaymentHandler(reqbody model.CreateOrderReq, order *model.Order,
 	paymentId := uuid.GetUuid()
 	payment := &model.Payment{
 		Id:          paymentId,
-		OrderID:     order.Id,                   // 订单ID
+		OrderId:     order.Id,                   // 订单ID
 		FinalAmount: order.FinalAmount,          // 订单金额
 		GatewayType: reqbody.PaymentGatewayType, // 支付网关类别
 		Method:      model.PaymentMethodQrcode,  // 支付方式

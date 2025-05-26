@@ -23,7 +23,7 @@ func InitLogger() *zap.Logger {
 	now := time.Now()
 	hook := &lumberjack.Logger{
 		// 日志存储位置
-		Filename:   fmt.Sprintf("%s/%04d%02d%02d%02d-%s.log", logPath, now.Year(), now.Month(), now.Day(), now.Hour(), module),
+		Filename:   fmt.Sprintf("%s/%04d%02d%02d-%02d/%s.log", logPath, now.Year(), now.Month(), now.Day(), now.Hour(), module),
 		// 日志文件大小单位: M
 		MaxSize:    500,                                       
 		// 备份数

@@ -9,7 +9,7 @@ import (
 )
 
 // @Title   获取用户所有支付记录
-// @Description 用户id
+// @Params	用户id
 // @Author  AInoriex  (2025/05/06 14:11)
 func GetPaymentsById(id string) (res *model.Payment, err error) {
 	log.Infof("GetPaymentsById params, id:%+v", id)
@@ -22,22 +22,8 @@ func GetPaymentsById(id string) (res *model.Payment, err error) {
 	return
 }
 
-// @Title   获取用户所有支付记录
-// @Description 用户id
-// @Author  AInoriex  (2025/05/06 14:11)
-func GetPaymentsByUserId(userId string) (res []*model.Payment, err error) {
-	log.Infof("GetPaymentsByUserId params, userId:%+v", userId)
-	err = db.MysqlCon.Where("user_id = ?", userId).Find(&res).Error
-	if err != nil {
-		log.Error("GetPaymentsByUserId fail", zap.Error(err))
-		return nil, err
-	}
-
-	return
-}
-
 // @Title   获取用户单个支付记录
-// @Description 用户id，支付id
+// @Params	用户id，支付id
 // @Author  AInoriex  (2025/05/06 14:11)
 func GetPaymentByUserIdAndProductId(userId string, paymentId string) (res *model.Payment, err error) {
 	log.Infof("GetPaymentByUserIdAndProductId params, userId:%+v, paymentId:%+v", userId, paymentId)
@@ -50,8 +36,36 @@ func GetPaymentByUserIdAndProductId(userId string, paymentId string) (res *model
 	return
 }
 
+// @Title   获取用户所有支付记录
+// @Params	用户id
+// @Author  AInoriex  (2025/05/06 14:11)
+func GetPaymentsByUserId(userId string) (res []*model.Payment, err error) {
+	log.Infof("GetPaymentsByUserId params, userId:%+v", userId)
+	err = db.MysqlCon.Where("user_id = ?", userId).Find(&res).Error
+	if err != nil {
+		log.Error("GetPaymentsByUserId fail", zap.Error(err))
+		return nil, err
+	}
+
+	return
+}
+
+// @Title   获取指定支付状态的所有支付记录
+// @Params	支付状态status
+// @Author  AInoriex  (2025/05/15 11:15)
+func GetPaymentsByStatus(status int32) (res []*model.Payment, err error) {
+	log.Infof("GetPaymentsByStatus params, status:%+v", status)
+	err = db.MysqlCon.Where("status = ?", status).Find(&res).Error
+	if err != nil {
+		log.Error("GetPaymentsByStatus fail", zap.Error(err))
+		return nil, err
+	}
+
+	return
+}
+
 // @Title   创建数据记录
-// @Description desc
+// @Params	desc
 // @Author  AInoriex  (2025/05/06 14:11)
 func CreatePayment(m *model.Payment) (res *model.Payment, err error) {
 	log.Infof("CreatePayment params, m:%+v", m)
@@ -67,7 +81,7 @@ func CreatePayment(m *model.Payment) (res *model.Payment, err error) {
 }
 
 // @Title   更新支付记录
-// @Description 特定字段
+// @Params	特定字段
 // @Author  AInoriex  (2025/05/08 14:30)
 func UpdatePaymentByField(m *model.Payment, field []string) (res *model.Payment, err error) {
 	log.Infof("UpdatePaymentByField params, m:%+v, field:%+v", m, field)

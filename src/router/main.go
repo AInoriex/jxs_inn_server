@@ -8,6 +8,7 @@ import (
 	"fmt"
 )
 
+// 路由服务入口
 func main() {
 	// 初始化配置文件
 	err := config.InitConfig()
@@ -18,6 +19,7 @@ func main() {
 
 	// 初始化日志
 	log.InitLogger()
+	defer log.Sync()
 	log.Info("初始化日志成功")
 
 	// 初始化数据库

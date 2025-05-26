@@ -12,10 +12,9 @@ import (
 	"go.uber.org/zap"
 )
 
-// @Title      创建订单
+// @Title		 创建订单
 // @Description	 用户购物车结算并创建订单
 // @Router       /v1/eshop_api/user/order/create [post]
-// @Router       /v1/eshop_api/user/order/pay [post]
 // @Body		 json
 // @Response     json
 func CreateUserOrder(c *gin.Context) {
@@ -192,49 +191,21 @@ func GetUserOrderStatus(c *gin.Context) {
 		return
 	}
 
-	// 未支付
-	if order.PaymentStatus != model.PaymentStatusPayed {
+	if order.PaymentStatus == model.OrderPaymentStatusTimeOut {
+		// 支付超时
+		Fail(c, uerrors.Parse(uerrors.ErrorUserPayTimeout.Error()).Code, uerrors.Parse(uerrors.ErrorUserPayTimeout.Error()).Detail)
+		return
+	} else if order.PaymentStatus == model.OrderPaymentStatusPayFail {
+		// 支付失败
+		Fail(c, uerrors.Parse(uerrors.ErrorUserPayFailed.Error()).Code, uerrors.Parse(uerrors.ErrorUserPayFailed.Error()).Detail)
+		return
+	} else if order.PaymentStatus != model.PaymentStatusPayed {
+		// 已创建&未支付&支付中&取消支付&其他
 		Fail(c, uerrors.Parse(uerrors.ErrorUserNotPay.Error()).Code, uerrors.Parse(uerrors.ErrorUserNotPay.Error()).Detail)
 		return
+	} else {
+		// 已支付
+		// TODO: 补偿修复用户购买历史记录?
+		Success(c, dataMap)
 	}
-
-	// 已支付
-	// 补偿修复用户购买历史记录
-	go func() {
-		// 查询订单下所有商品
-		itemList, err := dao.GetOrderItemsById(order.ItemId)
-		if err != nil {
-			log.Error("GetUserOrderStatus 查询订单商品失败", zap.Error(err))
-			return
-		}
-		for _, item := range itemList {
-			// 检查用户购买历史中是否存在该商品，存在则跳过
-			history, err := dao.GetPurchaseHistoryByUserIdAndProductIdAndPaymentId(user.Id, item.ProductId, order.PaymentId)
-			if err == nil && history.Id != 0 {
-				log.Warnf("GetUserOrderStatus 用户购买历史已存在该商品，跳过", zap.String("userId", user.Id), zap.String("productId", item.ProductId), zap.String("paymentId", order.PaymentId))
-				return
-			}
-			// 查询支付记录
-			payment, err := dao.GetPaymentsById(order.PaymentId)
-			if err!= nil {
-				log.Error("GetUserOrderStatus 修补购买历史，查询支付记录失败", zap.Error(err))
-				return	
-			}
-			// 创建购买历史
-			history = &model.PurchaseHistory{
-				UserId:      user.Id,
-				ProductId:   item.ProductId,
-				Quantity:    item.Quantity,
-				PaymentId:   order.PaymentId,
-				PurchasedAt: payment.PurchasedAt,
-			}
-			_, err = dao.CreatePurchaseHistory(history)
-			if err != nil {
-				log.Error("GetUserOrderStatus 修补购买历史，创建购买历史记录失败", zap.Error(err))
-				return
-			}
-		}
-	}()
-
-	Success(c, dataMap)
 }

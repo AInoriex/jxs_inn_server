@@ -8,6 +8,19 @@ import (
 	"time"
 )
 
+// @Title   获取订单记录
+// @Description 根据订单ID获取订单记录
+// @Author  AInoriex  (2025/05/16 16:43)
+func GetOrderByOrderId(orderId string) (res *model.Order, err error) {
+	err = db.MysqlCon.Where("id =?", orderId).First(&res).Error
+	if err != nil {
+		log.Error("GetOrderByOrderId fail", zap.Error(err))
+		return nil, err
+	}
+
+	return
+}
+
 // @Title   获取用户所有订单记录
 // @Description 用户id
 // @Author  AInoriex  (2025/05/06 14:11)
@@ -28,6 +41,19 @@ func GetOrderByUserIdAndProductId(userId string, orderId string) (res *model.Ord
 	err = db.MysqlCon.Where("user_id = ? and id = ?", userId, orderId).First(&res).Error
 	if err != nil {
 		log.Error("GetOrderByUserIdAndProductId fail", zap.Error(err))
+		return nil, err
+	}
+
+	return
+}
+
+// @Title	获取订单记录
+// @Description 根据支付ID获取订单记录
+// @Author	AInoriex (2025/05/15 20:00)
+func GetOrderByPaymentId(paymentId string) (res *model.Order, err error) {
+	err = db.MysqlCon.Where("payment_id =?", paymentId).First(&res).Error
+	if err != nil {
+		log.Error("GetOrderByPaymentId fail", zap.Error(err))
 		return nil, err
 	}
 
