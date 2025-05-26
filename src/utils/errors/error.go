@@ -51,7 +51,7 @@ func BadRequest(id, detail string) error {
 		Id:     id,
 		Code:   400,
 		Detail: detail,
-		Status: http.StatusText(400),
+		Status: http.StatusText(http.StatusBadRequest),
 	}
 }
 
@@ -60,7 +60,7 @@ func Unauthorized(id, detail string) error {
 		Id:     id,
 		Code:   401,
 		Detail: detail,
-		Status: http.StatusText(401),
+		Status: http.StatusText(http.StatusUnauthorized),
 	}
 }
 
@@ -69,7 +69,7 @@ func Forbidden(id, detail string) error {
 		Id:     id,
 		Code:   403,
 		Detail: detail,
-		Status: http.StatusText(403),
+		Status: http.StatusText(http.StatusForbidden),
 	}
 }
 
@@ -78,7 +78,7 @@ func NotFound(id, detail string) error {
 		Id:     id,
 		Code:   404,
 		Detail: detail,
-		Status: http.StatusText(404),
+		Status: http.StatusText(http.StatusNotFound),
 	}
 }
 
@@ -87,6 +87,6 @@ func InternalServerError(id, detail string) error {
 		Id:     id,
 		Code:   500,
 		Detail: detail,
-		Status: http.StatusText(500),
+		Status: http.StatusText(http.StatusInternalServerError),
 	}
 }
