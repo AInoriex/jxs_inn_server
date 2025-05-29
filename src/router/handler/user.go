@@ -15,7 +15,7 @@ import (
 	"strings"
 )
 
-// @Title      用户登陆
+// @Title        用户登陆
 // @Description  邮箱+密码登陆
 // @Param        json
 // @Produce      json
@@ -80,7 +80,16 @@ func UserLogin(c *gin.Context) {
 	Success(c, dataMap)
 }
 
-// @Title      用户注册
+// @Title      	 用户登出
+// @Description  登出
+// @Produce      json
+// @Router       /v1/eshop_api/auth/logout [get]
+func UserLogout(c *gin.Context) {
+	// TODO 实现用户登出逻辑
+	Success(c, nil)
+}
+
+// @Title        用户注册
 // @Description  邮箱+密码注册
 // @Param        json
 // @Produce      json
@@ -126,10 +135,11 @@ func UserRegister(c *gin.Context) {
 	}
 
 	// 返回
+	log.Infof("UserRegister 用户注册成功，user_id:%v, name:%v, email:%v", new_user.Id, new_user.Name, new_user.Email)
 	Success(c, dataMap)
 }
 
-// @Title      用户刷新token
+// @Title        用户刷新token
 // @Description  传入旧token用于获取新token
 // @Param        json
 // @Produce      json
@@ -158,31 +168,27 @@ func UserRefreshToken(c *gin.Context) {
 	if ve, ok := err.(*jwt.ValidationError); ok {
 		if ve.Errors&jwt.ValidationErrorExpired != 0 {
 			// token已过期，生成新token
+			log.Warn("UserRefreshToken token已过期，生成新token", zap.String("token", reqbody.OldToken))
+			newToken, err := middleware.GenerateToken(claims.UserId, claims.Roles)
+			if err != nil {
+				log.Error("UserRefreshToken 生成新token失败", zap.Error(err))
+				Fail(c, uerrors.Parse(uerrors.ErrBusy.Error()).Code, uerrors.Parse(uerrors.ErrBusy.Error()).Detail)
+				return
+			}
+			dataMap["access_token"] = newToken
+
 		} else {
 			// token未过期，直接返回旧token
 			log.Warn("UserRefreshToken token未过期，返回旧token", zap.String("token", reqbody.OldToken))
-			dataMap["token_type"] = middleware.TokenType
 			dataMap["access_token"] = reqbody.OldToken
-			Success(c, dataMap)
-			return
 		}
-	}
-
-	// Generate new token using the claims from the old token
-	newToken, err := middleware.GenerateToken(claims.UserId, claims.Roles)
-	if err != nil {
-		log.Error("UserRefreshToken 生成新token失败", zap.Error(err))
-		Fail(c, uerrors.Parse(uerrors.ErrBusy.Error()).Code, uerrors.Parse(uerrors.ErrBusy.Error()).Detail)
+		dataMap["token_type"] = middleware.TokenType
+		Success(c, dataMap)
 		return
 	}
-
-	// Return the new token
-	dataMap["token_type"] = middleware.TokenType
-	dataMap["access_token"] = newToken
-	Success(c, dataMap)
 }
 
-// @Title      获取用户信息
+// @Title        获取用户信息
 // @Description  通过token认证身份并获取本人用户信息
 // @Produce      json
 // @Router       /v1/eshop_api/user/info [get]
@@ -204,7 +210,9 @@ func GetUserInfo(c *gin.Context) {
 		AvatarUrl: user.AvatarUrl,
 	}
 
-	dataMap["result"] = res
+	dataMap["name"] = res.Name
+	dataMap["email"] = res.Email
+	dataMap["avatar_url"] = res.AvatarUrl
 	Success(c, dataMap)
 }
 

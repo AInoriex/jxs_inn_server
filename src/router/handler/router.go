@@ -25,6 +25,7 @@ func InitRouter() {
 		{
 			auth.POST("/register", UserRegister)
 			auth.POST("/login", UserLogin)
+			auth.GET("/logout", UserLogout)
 			auth.POST("/refresh_token", UserRefreshToken)
 		}
 
