@@ -44,7 +44,7 @@ func GetCartList(c *gin.Context) {
 	}
 
 	// 商品信息聚合
-	var resList []model.GetCartListItemResponse
+	resList := make([]model.GetCartListItemResponse, 0)
 	for _, cartItem := range cartList {
 		if cartItem.ProductId == "" {
 			log.Error("GetCartList 获取商品详情信息失败，商品ID为空", zap.Int64("cart_id", cartItem.Id))
