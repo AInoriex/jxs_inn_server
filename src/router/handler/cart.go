@@ -21,7 +21,7 @@ func GetCartList(c *gin.Context) {
 	// JWT用户查询&鉴权
 	user, err := isValidUser(c)
 	if err != nil {
-		log.Error("GetCartList 非法用户", zap.Error(err))
+		log.Error("GetCartList 非法用户请求", zap.Error(err))
 		FailWithAuthorization(c)
 		return
 	}
@@ -84,7 +84,7 @@ func CreateCart(c *gin.Context) {
 	// JWT用户查询&鉴权
 	user, err := isValidUser(c)
 	if err != nil {
-		log.Error("CreateCart 非法用户", zap.Error(err))
+		log.Error("CreateCart 非法用户请求", zap.Error(err))
 		FailWithAuthorization(c)
 		return
 	}
@@ -159,7 +159,7 @@ func RemoveCart(c *gin.Context) {
 	// JWT用户查询&鉴权
 	user, err := isValidUser(c)
 	if err != nil {
-		log.Error("RemoveCart 非法用户", zap.Error(err))
+		log.Error("RemoveCart 非法用户请求", zap.Error(err))
 		FailWithAuthorization(c)
 		return
 	}

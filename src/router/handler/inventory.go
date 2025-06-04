@@ -21,7 +21,7 @@ func GetInventoryList(c *gin.Context) {
 	// JWT用户查询&鉴权
 	user, err := isValidUser(c)
 	if err != nil {
-		log.Error("GetInventoryList 非法用户", zap.Error(err))
+		log.Error("GetInventoryList 非法用户请求", zap.Error(err))
 		FailWithAuthorization(c)
 		return
 	}
