@@ -74,11 +74,14 @@ func generateM3U8(srcFile string, dstFile string) error {
 func StreamingPlayer(c *gin.Context) {
 	// var err error
 	// dataMap := make(map[string]interface{})
-	// TODO IP风控
 
-	// TODO 请求参数校验
+	// 请求参数校验
 	filename := c.Param("filename")
-	log.Infof("StreamingPlayer 请求参数, filename: %s", filename)
+	if filename == "" {
+		router_handler.FailWithFileNotFound(c)
+		return
+	}
+	log.Infof("StreamingPlayer 请求参数, filename:%s", filename)
 
 	// 判断文件是否存在
 	filePath := filepath.Join(model.StreamFileSegmentPath, filename)
