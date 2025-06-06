@@ -27,6 +27,7 @@ func InitRouter() {
 			auth.POST("/login", UserLogin)
 			auth.GET("/logout", UserLogout)
 			auth.POST("/refresh_token", UserRefreshToken)
+			// auth.POST("/verify_email", VerifyEmail)
 		}
 
 		// 用户权限路由

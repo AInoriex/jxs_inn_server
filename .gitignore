@@ -3,3 +3,5 @@ temp
 doc
 *.yaml
 *.log
+*.m3u8
+*.ts

@@ -53,6 +53,14 @@ type StreamServerConf struct {
 	Addr string `mapstructure:"addr"`
 }
 
+// smtp配置
+type SmtpConfig struct {
+	Host     string `mapstructure:"host"`
+	Port     int  `mapstructure:"port"`
+	Username string `mapstructure:"username"`
+	Password string `mapstructure:"password"`
+}
+
 // 通用配置
 type CommonConf struct {
 	AppName      string            `mapstructure:"app_name"`      // 应用名称
@@ -65,6 +73,7 @@ type CommonConf struct {
 	StreamServer StreamServerConf  `mapstructure:"stream_server"` // 流媒体服务
 	JwtSecret    string            `mapstructure:"jwt_secret"`    // jwt密钥
 	YltAccount   map[string]string `mapstructure:"ylt_account"`   // ylt账号
+	Smtp         SmtpConfig        `mapstructure:"smtp"`          // smtp配置
 }
 
 // 数据库配置
