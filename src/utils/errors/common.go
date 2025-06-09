@@ -47,8 +47,8 @@ var (
 	ErrBusy                = New("", "系统繁忙", ErrCodeBusy)      //一些极少出现，且不适合返回的错误
 	ErrMaintain            = New("", "服务器维护", ErrCodeMaintain) // 服务器维护
 	ErrNoMatchObj          = New("", "调用对象不匹配", ErrCodeNoMatchObj)
-	ErrJsonUnmarshal       = New("", "JsonUnmarshal err", ErrCodeJsonUnmarshal)
-	ErrJsonMarshal         = New("", "JsonMarshal err", ErrCodeJsonMarshal)
+	ErrJsonUnmarshal       = New("", "JSON反序列化失败", ErrCodeJsonUnmarshal)
+	ErrJsonMarshal         = New("", "JSON序列化失败", ErrCodeJsonMarshal)
 	ErrRedisLockTimeOut    = New("", "系统繁忙", ErrCodeRedisLockTimeOut) //redis锁超时错误用替代
 	ErrTargetVersionTooLow = New("", "对方版本过低，暂不支持此功能", ErrCodeTargetVersionTooLow)
 	ErrAINotFace           = New("", "未检测到人脸", ErrCodeAINotFace)

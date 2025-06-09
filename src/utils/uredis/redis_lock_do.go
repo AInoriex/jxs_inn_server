@@ -24,7 +24,7 @@ func (this *RedisLock) GetString() ([]byte, error) {
 }
 
 func (this *RedisLock) SetString(value interface{}, ex ...int64) error {
-	var t = Default_Time
+	var t = DefaultTime
 	if len(ex) > 0 {
 		t = time.Duration(ex[0]) * time.Second
 	}

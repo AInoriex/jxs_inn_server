@@ -13,10 +13,10 @@ import (
 )
 
 const (
-	Repeated_Times    = 5  //次数
-	Repeated_Interval = 20 //毫秒
+	RepeatedTimes    = 5  //重试次数
+	RepeatedInterval = 20 //重试间隔：毫秒
 
-	Default_Time = time.Duration(-1) * time.Second
+	DefaultTime = time.Duration(-1) * time.Second // 默认过期时间
 )
 
 type dialOptions func(*redis.Options)
@@ -92,7 +92,7 @@ func DelKey(con *redis.Client, key ...string) error {
 	return err
 }
 
-// /////////////string
+// 获取string key
 func GetString(con *redis.Client, key string) ([]byte, error) {
 	count := 1
 	for {
@@ -104,20 +104,21 @@ func GetString(con *redis.Client, key string) ([]byte, error) {
 			return nil, nil
 		}
 		count++
-		if count > Repeated_Times {
+		if count > RepeatedTimes {
 			log.Error("GetString失败 ", zap.Any("key", key), zap.Error(err))
 			return nil, err
 		} else {
 			log.Error(fmt.Sprintf("GetString请求key=%v数据失败，err = %s, "+
 				"发起第%v请求", key, err, count))
-			time.Sleep(Repeated_Interval * time.Millisecond) //重试间隔
+			time.Sleep(RepeatedInterval * time.Millisecond) //重试间隔
 		}
 	}
 }
 
+
 func SetString(con *redis.Client, key string, value interface{}, ex ...int64) error {
 	count := 1
-	var t = Default_Time
+	var t = DefaultTime
 	if len(ex) > 0 {
 		t = time.Duration(ex[0]) * time.Second
 	}
@@ -127,19 +128,19 @@ func SetString(con *redis.Client, key string, value interface{}, ex ...int64) er
 			return nil
 		}
 		count++
-		if count > Repeated_Times {
+		if count > RepeatedTimes {
 			log.Error("SetString失败", zap.Any("key", key), zap.Error(err))
 			return err
 		} else {
 			log.Error(fmt.Sprintf("SetString请求key=%v数据失败，err = %s, "+
 				"发起第%v请求", key, err, count))
-			time.Sleep(Repeated_Interval * time.Millisecond) //重试间隔
+			time.Sleep(RepeatedInterval * time.Millisecond) //重试间隔
 		}
 	}
 	return nil
 }
 
-// //////////hash
+// 获取hash key
 func GetHash(con *redis.Client, key string, field string) ([]byte, error) {
 	count := 1
 	for {
@@ -151,13 +152,13 @@ func GetHash(con *redis.Client, key string, field string) ([]byte, error) {
 			return nil, nil
 		}
 		count++
-		if count > Repeated_Times {
+		if count > RepeatedTimes {
 			log.Error(fmt.Sprintf("GetHash请求key=%v数据失败 err=%s", key, err))
 			return nil, err
 		} else {
 			log.Error(fmt.Sprintf("GetHash请求key=%v数据失败，err = %s, "+
 				"发起第%v请求", key, err, count))
-			time.Sleep(Repeated_Interval * time.Millisecond) //重试间隔
+			time.Sleep(RepeatedInterval * time.Millisecond) //重试间隔
 		}
 	}
 }
@@ -183,13 +184,13 @@ func MGetHash(con *redis.Client, key string, fields []string) (map[string]*strin
 		}
 
 		count++
-		if count > Repeated_Times {
+		if count > RepeatedTimes {
 			log.Error(fmt.Sprintf("MGetHash请求key=%v数据失败 err=%s", key, err.Error()))
 			return nil, err
 		} else {
 			log.Error(fmt.Sprintf("GetHash请求key=%v数据失败，err = %s, "+
 				"发起第%v请求", key, err, count))
-			time.Sleep(Repeated_Interval * time.Millisecond) //重试间隔
+			time.Sleep(RepeatedInterval * time.Millisecond) //重试间隔
 		}
 	}
 }
@@ -202,13 +203,13 @@ func GetHashAll(con *redis.Client, key string) (map[string]string, error) {
 			return result, nil
 		}
 		count++
-		if count > Repeated_Times {
+		if count > RepeatedTimes {
 			log.Error(fmt.Sprintf("GetHash请求key=%v数据失败 err=%s", key, err))
 			return nil, err
 		} else {
 			log.Error(fmt.Sprintf("GetHash请求key=%v数据失败，err = %s, "+
 				"发起第%v请求", key, err, count))
-			time.Sleep(Repeated_Interval * time.Millisecond) //重试间隔
+			time.Sleep(RepeatedInterval * time.Millisecond) //重试间隔
 		}
 	}
 }
@@ -230,13 +231,13 @@ func SetHash(con *redis.Client, key, field string, value []byte) error {
 			return nil
 		}
 		count++
-		if count > Repeated_Times {
+		if count > RepeatedTimes {
 			log.Error(fmt.Sprintf("SetHash请求key=%v数据失败 err=%s", key, err))
 			return err
 		} else {
 			log.Error(fmt.Sprintf("SetHash请求key=%v数据失败，err = %s, "+
 				"发起第%v请求", key, err, count))
-			time.Sleep(Repeated_Interval * time.Millisecond) //重试间隔
+			time.Sleep(RepeatedInterval * time.Millisecond) //重试间隔
 		}
 	}
 	return nil
@@ -318,7 +319,7 @@ func Lrange(con *redis.Client, key string, start int64, stop int64) ([]string, e
 func SAdd(con *redis.Client, key string, value interface{}, ex ...int64) error {
 	err := con.SAdd(context.Background(), key, value).Err()
 	if err == nil && len(ex) > 0 {
-		var t = Default_Time
+		var t = DefaultTime
 		t = time.Duration(ex[0]) * time.Second
 		err = con.Expire(context.Background(), key, t).Err()
 		return err
