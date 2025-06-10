@@ -1,8 +1,9 @@
 package middleware
 
 import (
-	"github.com/gin-gonic/gin"
 	"eshop_server/src/utils/log"
+	"fmt"
+	"github.com/gin-gonic/gin"
 	"time"
 )
 
@@ -20,14 +21,22 @@ func Logger() gin.HandlerFunc {
 		// body
 		c.Next()
 
-		end := time.Now()
-		latency := end.Sub(start) //执行时间
+		latency := time.Since(start) //执行时间
 		statusCode := c.Writer.Status()
-		log.Infof("end server | %3d | %13v | %15s | %s  %s |",
-			statusCode,
-			latency,
-			clientIP,
-			method, path,
+		log.Infof("end server | %3d | %10v | %s  %s | %15s |",
+			statusCode, formatLatency(latency), method, path, clientIP,
 		)
+	}
+}
+
+// 辅助函数：将耗时转换为友好格式（毫秒/秒/分钟）
+func formatLatency(d time.Duration) string {
+	switch {
+	case d < time.Second:
+		return fmt.Sprintf("%dms", d.Milliseconds()) // 小于1秒显示毫秒
+	case d < time.Minute:
+		return fmt.Sprintf("%.2fs", d.Seconds()) // 1秒~1分钟显示秒（保留两位小数）
+	default:
+		return fmt.Sprintf("%dm%ds", int(d.Minutes()), int(d.Seconds())%60) // 大于1分钟显示分+秒
 	}
 }
