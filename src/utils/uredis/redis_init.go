@@ -15,7 +15,7 @@ func GetRedis() *redis.Client {
 }
 
 //初始化redis
-func InitRedis(host, pwd string, db int) {
+func InitRedis(host string, pwd string, db int) {
 	RedisCon = New(host, pwd, db)
 	log.Info("初始化redis完成", zap.Any("RedisCon", RedisCon))
 }

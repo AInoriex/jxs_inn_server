@@ -22,10 +22,9 @@ const (
 type dialOptions func(*redis.Options)
 
 func New(host string, pwd string, db int) *redis.Client {
-	configs := strings.Split(host, ",")
 	con := redis.NewClient(&redis.Options{
 		PoolSize: 100,
-		Addr:     strings.TrimSpace(configs[0]),
+		Addr:     strings.TrimSpace(host),
 		Password: pwd,
 		DB:       db,
 	})
