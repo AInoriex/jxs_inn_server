@@ -4,6 +4,7 @@ import (
 	"eshop_server/src/router/handler"
 	"eshop_server/src/utils/config"
 	"eshop_server/src/utils/db"
+	"eshop_server/src/utils/uredis"
 	"eshop_server/src/utils/log"
 	"fmt"
 )
@@ -25,6 +26,10 @@ func main() {
 	// 初始化数据库
 	db.InitMysqlAll(config.DbConfig.Mysql.Host, config.DbConfig.Mysql.Db, config.DbConfig.Mysql.MaxCon, db.Con_Main, config.CommonConfig.OpenDbLog)
 	log.Info("初始化Mysql数据库成功")
+
+	// 初始化redis
+	uredis.InitRedis(config.DbConfig.Redis.Host, config.DbConfig.Redis.Password, config.DbConfig.Redis.Db)
+	log.Info("初始化Redis缓存成功")
 
 	// 初始化路由
 	handler.InitRouter()

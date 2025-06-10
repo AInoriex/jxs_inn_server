@@ -1,12 +1,11 @@
 package cache
 
 import (
-	"eshop_server/src/utils/common"
 	"eshop_server/src/utils/log"
 	"eshop_server/src/utils/uredis"
 )
 
-// 获取jxs用户登陆态
+// 获取jxs用户登录态
 func GetJxsUserToken(userId string) (bool, string) {
 	key := GetJxsUserTokenKey(userId)
 	b, err := uredis.GetString(uredis.RedisCon, key)
@@ -22,18 +21,18 @@ func GetJxsUserToken(userId string) (bool, string) {
 	}
 }
 
-// 保存jxs用户登陆态
-func SaveJxsUserToken(userId string, code int32) error {
+// 保存jxs用户登录态
+func SaveJxsUserToken(userId string, token string) error {
 	key := GetJxsUserTokenKey(userId)
-	err := uredis.SetString(uredis.RedisCon, key, common.Int32ToString(code), KeyJxsUserTokenTimeout)
-	log.Infof("SaveJxsUserToken params, userId:%s, err:%s", userId, err.Error())
+	err := uredis.SetString(uredis.RedisCon, key, token, KeyJxsUserTokenTimeout)
+	log.Debugf("SaveJxsUserToken params, userId:%s, err:%v", userId, err)
 	return err
 }
 
-// 删除jxs用户登陆态
+// 删除jxs用户登录态
 func DelJxsUserToken(userId string) bool {
 	key := GetJxsUserTokenKey(userId)
 	err := uredis.DelKey(uredis.RedisCon, key)
-	log.Debugf("DelJxsUserToken params, userId:%s, err:%s", userId, err.Error())
+	log.Debugf("DelJxsUserToken params, userId:%s, err:%v", userId, err)
 	return err == nil
 }

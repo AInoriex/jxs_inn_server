@@ -18,9 +18,10 @@ func InitRouter() {
 		product := api.Group("/product")
 		{
 			product.GET("/list", GetProductList)
+			// product.GET("/search", SearchProducts)
 		}
 
-		// 登陆路由
+		// 登录路由
 		auth := api.Group("/auth")
 		{
 			auth.POST("/register", UserRegister)
@@ -36,7 +37,8 @@ func InitRouter() {
 		{
 			// 用户信息
 			user.GET("/info", GetUserInfo)
-			// user.PUT("/update", UpdateUserInfo)
+			// user.POST("/update", UpdateUserInfo)
+			// user.POST("/reset_password", ResetPassword)
 
 			// 购物车
 			user.GET("/cart/list", GetCartList)
