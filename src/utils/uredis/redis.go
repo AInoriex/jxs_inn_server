@@ -91,6 +91,12 @@ func DelKey(con *redis.Client, key ...string) error {
 	return err
 }
 
+// 模式匹配获取所有key
+func GetAllKey(con *redis.Client, pattern string) ([]string, error) {
+	keys, err := con.Keys(context.Background(), pattern).Result()
+	return keys, err
+}
+
 // 获取string key
 func GetString(con *redis.Client, key string) ([]byte, error) {
 	count := 1
