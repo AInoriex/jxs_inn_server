@@ -11,7 +11,7 @@ import (
 
 // @Author	AInoriex
 // @Desc	扫码支付流程
-// HARDNEED	当前仅支持YLT支付
+// @HARDNEED	当前仅支持YLT支付
 func QrcodeOrderPaymentHandler(reqbody model.CreateOrderReq, order *model.Order, product *model.Products) (qrcode string, err error) {
 	// 参数判断
 	if reqbody.PaymentMethod != model.PaymentMethodQrcode {
@@ -27,20 +27,34 @@ func QrcodeOrderPaymentHandler(reqbody model.CreateOrderReq, order *model.Order,
 		return "", errors.New("参数错误：商品关联ID为空")
 	}
 
-	// 获取YLT账号
-	phone, password, err := GetYltRandomAgent()
-	if err != nil || phone == "" || password == "" {
-		log.Error("QrcodeOrderPaymentHandler 获取YLT账号失败", zap.Error(err))
-		return "", errors.New("创建订单失败，请联系客服")
-	}
+	// 创建YLT订单
+	var yltOrderId, phone, password string
+	var retry, retryLimit = 3, 3
+	for {
+		if retry <= 0 {
+			log.Error("QrcodeOrderPaymentHandler 创建YLT订单重试失败")
+			return "", errors.New("创建订单失败，请联系客服")
+		} else if retry < retryLimit {
+			log.Infof("QrcodeOrderPaymentHandler 创建YLT订单当前重试次数:retry:%v", retry)
+		}
 
-	// 获取YLT关联商品信息
+		// 随机获取YLT账号
+		phone, password, err = GetYltConfigRandomAccount()
+		if err != nil || phone == "" || password == "" {
+			log.Errorf("QrcodeOrderPaymentHandler 获取YLT账号失败, phone:%v, password:%v, error:%v", phone, password, err)
+			continue
+		}
 
-	// 调用接口创建YLT订单
-	yltOrderId, qrcode, err := YltCreateOrderHandler(phone, password, product.ExternalId, product.Price)
-	if err != nil || yltOrderId == "" || qrcode == "" {
-		log.Error("QrcodeOrderPaymentHandler 创建YLT订单失败", zap.String("ylt订单id", yltOrderId), zap.Bool("二维码是否为空", (qrcode == "")), zap.Error(err))
-		return "", errors.New("创建订单失败，请咨询客服")
+		// 调用接口创建YLT订单
+		yltOrderId, qrcode, err = YltCreateOrderHandler(phone, password, product.ExternalId, product.Price)
+		if err != nil || yltOrderId == "" || qrcode == "" {
+			log.Errorf("QrcodeOrderPaymentHandler 创建YLT订单失败, yltOrderId:%v, qrcode is null?:%v, error:%v", yltOrderId, (qrcode == ""), err)
+			retry--
+			continue
+		} else {
+			log.Infof("QrcodeOrderPaymentHandler 创建YLT订单成功, yltOrderId:%v, qrcode is null?:%v", yltOrderId, (qrcode == ""))
+			break
+		}
 	}
 
 	// 创建payment

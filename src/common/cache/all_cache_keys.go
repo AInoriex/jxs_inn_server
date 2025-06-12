@@ -6,12 +6,13 @@ import (
 
 const (
 	// jxs用户登录态
-	KeyJxsUserToken        = "JxsUser:%v"
-	KeyJxsUserTokenTimeout = 30 * 60 // 用户Token有效时长30mins
+	KeyJxsUserToken        string = "JxsUser:%v"
+	KeyJxsUserTokenTimeout        = 30 * 60 // 用户Token有效时长30mins
 
 	// ylt登录态
-	KeyYltUserToken        = "YltUser:%v"
-	KeyYltUserTokenTimeout = 3 * 60 * 60 // 用户Token有效时长1hours
+	KeyYltUserPrefix       string = "YltUser"
+	KeyYltUserToken        string = KeyYltUserPrefix + ":%v"
+	KeyYltUserTokenTimeout        = 3 * 60 * 60 // 用户Token有效时长1hours
 )
 
 // jxs用户登录态Key

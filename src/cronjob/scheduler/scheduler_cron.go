@@ -18,7 +18,8 @@ func InitScheduler() {
 	// Schedu.AddJob("@every 5s", EveryFiveSecondTask)     // 每5s执行一次
 	// Schedu.AddJob("@every 2s", EveryTwoSecondTask)      // 每2s执行一次
 
-	Schedu.AddJob("@every 5s", handler.UpdateOrderCronjob) // 每5s执行一次
+	Schedu.AddJob("@every 30s", handler.YltLoginCronjob)	// 每30s执行一次
+	Schedu.AddJob("@every 5s", handler.UpdateOrderCronjob)	// 每5s执行一次
 	Schedu.Start()
 }
 

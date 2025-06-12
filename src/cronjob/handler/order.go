@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"eshop_server/src/common/cache"
 	router_dao "eshop_server/src/router/dao"
 	router_handler "eshop_server/src/router/handler"
 	router_model "eshop_server/src/router/model"
@@ -36,9 +37,9 @@ func UpdateOrderCronjob() {
 		}
 
 		// 获取YLT Token信息
-		gt_token, cookie, err := router_handler.GetYltAgentTokenCookie(payment.Agent)
-		if err != nil {
-			log.Errorf("UpdateOrderCronjob 获取YLT Token信息失败, agent:%s, error:%s", payment.Agent, err.Error())
+		flag, gt_token, cookie := cache.GetYltUserToken(payment.Agent)
+		if !flag {
+			log.Errorf("UpdateOrderCronjob 获取YLT登陆Token缓存信息失败, agent:%s", payment.Agent)
 			return
 		}
 		// 查询YLT支付状态，更新平台订单状态

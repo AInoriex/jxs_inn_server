@@ -1,12 +1,13 @@
 package handler
 
 import (
+	"eshop_server/src/common/cache"
+	"eshop_server/src/utils/common"
 	"eshop_server/src/utils/config"
 	"eshop_server/src/utils/log"
 	"eshop_server/src/utils/qrcode"
 	"eshop_server/src/utils/utime"
 	"fmt"
-	"math/rand"
 	"os"
 	"time"
 
@@ -21,7 +22,7 @@ func YltOrderFullHandler(phone string, password string) {
 
 	gt_token, cookie, err := YltUserLogin(phone, password)
 	if err != nil {
-		log.Error("YltOrderHandler 登陆失败", zap.Error(err))
+		log.Error("YltOrderHandler 登录失败", zap.Error(err))
 		return
 	}
 	time.Sleep(2 * time.Second)
@@ -71,37 +72,39 @@ func YltOrderFullHandler(phone string, password string) {
 func YltCreateOrderHandler(phone string, password string, productId string, price float64) (string, string, error) {
 	log.Infof("YltCreateOrderHandler 开始创建订单: phone: %s, password: %s, productId: %s", phone, password, productId)
 	// 尝试从缓存获取gt_token, cookie
-
-	// 重新登陆获取新token，并更新缓存
-	gt_token, cookie, err := YltUserLogin(phone, password)
-	if err != nil {
-		log.Error("YltCreateOrderHandler 登陆失败", zap.Error(err))
-		return "", "", err
+	flag, gt_token, cookie := cache.GetYltUserToken(phone)
+	if !flag {
+		log.Infof("YltCreateOrderHandler 从缓存获取gt_token, cookie失败")
+		// 重新登录获取新token，并更新缓存
+		// gt_token, cookie, err := YltUserLogin(phone, password)
+		// if err != nil {
+		// 	log.Error("YltCreateOrderHandler 登录失败", zap.Error(err))
+		// 	return "", "", err
+		// }
+		return "", "", fmt.Errorf("从缓存获取%s账号登陆Token信息失败", phone)
 	}
-	time.Sleep(2 * time.Second)
-
+	log.Infof("YltCreateOrderHandler 从缓存获取YLT用户Token信息成功, gt_token: %s, cookie: %s", gt_token, cookie)
 	orderId, base64, err := YltCreateOrder(gt_token, cookie, productId, price)
 	if err != nil {
-		log.Error("YltCreateOrderHandler 创建订单失败", zap.Error(err))
+		log.Errorf("YltCreateOrderHandler 创建YLT订单失败, phone: %s, password: %s, productId: %s, error: %v", phone, password, productId, err)
 		return "", "", err
 	}
-	log.Infof("YltCreateOrderHandler 创建订单成功", zap.String("订单ID", orderId), zap.String("支付二维码", base64))
+	log.Infof("YltCreateOrderHandler 创建YLT订单成功, orderId: %s, qrcode:%s", orderId, base64)
 	return orderId, base64, err
 }
 
 // @Title		获取YLT代理账号
 // @Description	读取配置文件随机获取账号
-func GetYltRandomAgent() (string, string, error) {
+func GetYltConfigRandomAccount() (string, string, error) {
 	accounts := config.CommonConfig.YltAccount
-	rand.NewSource(utime.GetNowUnix())
-	index := rand.Intn(len(accounts)) // 生成随机索引
+	randint := common.RandomInt(0, len(accounts))
 	for phone, password := range accounts {
-		if index == 0 {
-			return phone, password, nil
-		}
-		index--
+		if randint == 0 {
+			return phone, password, nil	
+		}	
+		randint--
 	}
-	return "", "", fmt.Errorf("索引:%v没有找到有效的账号", index)
+	return "", "", fmt.Errorf("GetYltConfigRandomAccount failed")
 }
 
 // @Title		获取YLT代理账号密码
@@ -113,38 +116,4 @@ func GetYltAgentPassword(phone string) (string, error) {
 		return "", fmt.Errorf("账号:%v没有找到对应的密码", phone)
 	}
 	return password, nil
-}
-
-// @Title		获取YLT代理账号token, cookie
-// @Description	从缓存获取账号对应token, cookie
-func GetYltAgentTokenCookie(phone string) (string, string, error) {
-	// 从Redis缓存获取gt_token, cookie
-	// HARDCODE 目前从配置文件读取
-	// TODO 从redis读取&更新
-	returnMap := map[string]map[string]string{
-		"17803152032": {
-			"gt_token": "",
-			"cookie": "",
-		},
-		"16762397443": {
-			"gt_token": "",
-			"cookie": "",
-		},
-		"13292535169": {
-			"gt_token": "",
-			"cookie": "",
-		},
-		"17118521660": {
-			"gt_token": "",
-			"cookie": "",
-		},
-		"17054870744": {
-			"gt_token": "",
-			"cookie": "",
-		},
-	}
-	if _, ok := returnMap[phone]; !ok {
-		return "", "", fmt.Errorf("账号:%v没有找到对应的token, cookie", phone)	
-	}
-	return returnMap[phone]["gt_token"], returnMap[phone]["cookie"], nil
 }

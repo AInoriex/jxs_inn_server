@@ -30,7 +30,7 @@ var YltRequestHeaders map[string][]string = map[string][]string{
 	"gt-token":           {""},
 }
 
-// @Title	用户登陆，获取token
+// @Title	用户登录，获取token
 // @Method	POST
 // @Return	gt_token, cookie, error
 func YltUserLogin(phone string, password string) (string, string, error) {
@@ -55,14 +55,14 @@ func YltUserLogin(phone string, password string) (string, string, error) {
 	// 获取Set-Cookie头信息
 	cookies := resp.Header.Get("set-cookie")
 	if cookies == "" {
-		return "", "", fmt.Errorf("登陆响应请求头中未包含set-cookie信息")
+		return "", "", fmt.Errorf("登录响应请求头中未包含set-cookie信息")
 	}
 
 	bodyText, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", "", fmt.Errorf("读取响应体失败: %v", err)
 	}
-	log.Infof("YltUserLogin登陆成功, response body: %s\n", string(bodyText))
+	log.Infof("YltUserLogin登录成功, response body: %s\n", string(bodyText))
 	/* Success Response Body:
 	{
 		"s": true,
@@ -87,7 +87,7 @@ func YltUserLogin(phone string, password string) (string, string, error) {
 	return gt_token, cookies, nil
 }
 
-// @Title	获取登陆用户信息
+// @Title	获取登录用户信息
 // @Headers	gt-token + cookie
 // @Method	GET
 // @Return	nil
