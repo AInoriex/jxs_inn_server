@@ -115,7 +115,7 @@ func CreateCart(c *gin.Context) {
 
 	// 校验商品是否有效
 	_, err = dao.CheckProductById(reqbody.ProductId)
-	if err!= nil {
+	if err != nil {
 		log.Error("CreateCart 获取商品信息失败", zap.String("product_id", reqbody.ProductId))
 		Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail+":商品不存在")
 		return	
