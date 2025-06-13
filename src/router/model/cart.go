@@ -41,11 +41,11 @@ func (t *CartItem) TableName() string {
 
 // 获取购物车列表单个商品响应结构体
 type GetCartListItemResponse struct {
-	Id       string  `json:"id"`
-	Title    string  `json:"title"`
-	Price    float64 `json:"price"`
-	Quantity int32   `json:"quantity"`
-	Image    string  `json:"image"`
+	Id       string  `json:"id"`       // 商品id
+	Title    string  `json:"title"`    // 商品标题
+	Price    float64 `json:"price"`    // 商品价格
+	Quantity int32   `json:"quantity"` // 购买数量
+	Image    string  `json:"image"`    // 商品图片
 }
 
 // 创建购物车请求结构体
