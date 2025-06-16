@@ -14,10 +14,10 @@ import (
 // @Title		定时任务处理支付并更新订单状态
 // @Description	轮询获取支付中的订单，查询YLT订单状态，更新订单状态
 // @Attention	轮询间隔时间为5秒，该func所有操作需要5s内全部完成
-// @Attention	支付超时时间为5分钟，超过5分钟未支付则更新订单状态为超时，订单状态为超时后不再查询YLT订单状态
+// @Attention	支付超时时间为3分钟，超过5分钟未支付则更新订单状态为超时，订单状态为超时后不再查询YLT订单状态
 func UpdateOrderCronjob() {
 	var err error
-	var paymentTimeOutLimitMins int32 = 5 // 超时限制:5分钟
+	var paymentTimeOutLimitMins int32 = 3 // 超时限制:3分钟
 	// 查询是否有支付中的订单
 	paymentList, err := router_dao.GetPaymentsByStatus(router_model.PaymentStatusPaying)
 	if err != nil && gorm.ErrRecordNotFound == err {
