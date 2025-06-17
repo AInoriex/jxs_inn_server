@@ -54,6 +54,7 @@ const (
 	ErrorCodePasswordInvalid          int32 = 31045
 	ErrCodeUserNotFound               int32 = 31046
 	ErrCodeRegisterMailExisted        int32 = 31047
+	ErrCodePasswordNotSame            int32 = 31048
 )
 
 var (
@@ -92,4 +93,5 @@ var (
 	ErrorPasswordInvalid          = New("user", "请检查密码格式", ErrorCodePasswordInvalid)
 	ErrorUserNotFound             = New("user", "用户不存在", ErrCodeUserNotFound)
 	ErrorRegisterMailExisted      = New("user", "该邮箱已被注册，换一个试试吧", ErrCodeRegisterMailExisted)
+	ErrorPasswordNotSame          = New("user", "密码有误", ErrCodePasswordNotSame)
 )

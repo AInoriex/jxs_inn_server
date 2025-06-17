@@ -65,3 +65,16 @@ type UserRefreshTokenReq struct {
 type UserVerifyEmailReq struct {
 	Email string `json:"email"`
 }
+
+// 用户更新个人信息请求体
+type UserUpdateInfoReq struct {
+	Name      string `json:"name"`
+	AvatarUrl string `json:"avatar_url"`
+	Email     string `json:"email"`
+}
+
+// 用户重置密码请求体
+type UserResetPasswordReq struct {
+	OldPassword string `json:"old_password"`
+	NewPassword string `json:"new_password"`
+}

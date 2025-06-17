@@ -37,8 +37,8 @@ func InitRouter() {
 		{
 			// 用户信息
 			user.GET("/info", GetUserInfo)
-			// user.POST("/update", UpdateUserInfo)
-			// user.POST("/reset_password", ResetPassword)
+			user.POST("/update_info", UpdateUserInfo)
+			user.POST("/reset_password", ResetPassword)
 
 			// 购物车
 			user.GET("/cart/list", GetCartList)
@@ -49,8 +49,8 @@ func InitRouter() {
 			// 订单&支付
 			user.GET("/order/status", GetUserOrderStatus)
 			user.POST("/order/create", CreateUserOrder)
+			// user.POST("/order/cancel", CancelUserOrder)
 			// user.GET("/order/list", GetUserOrderList)
-			// user.DELETE("/order/delete", DeleteUserOrder)
 
 			// 藏品
 			user.GET("/inventory/list", GetInventoryList)

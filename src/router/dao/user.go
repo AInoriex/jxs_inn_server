@@ -50,3 +50,19 @@ func CreateUser(m *model.User) (res *model.User, err error) {
 
 	return m, nil
 }
+
+// @Title   更新用户记录
+// @Description 特定字段
+// @Author  AInoriex  (2025/06/17 15:49)
+func UpdateUserByField(m *model.User, field []string) (res *model.User, err error) {
+	log.Infof("UpdateUserByField params, m:%+v, field:%+v", m, field)
+	// Select 除 Omit() 外的所有字段
+	err = db.MysqlCon.Model(&model.User{}).Select(field).Omit("id").Omit("create_at").
+		Where("id = ?", m.Id).Updates(m).Error
+	if err != nil {
+		log.Error("UpdateUserByField fail ", zap.Any("m", m))
+		return nil, err
+	}
+
+	return m, nil
+}
