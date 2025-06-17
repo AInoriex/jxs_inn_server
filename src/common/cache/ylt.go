@@ -83,7 +83,9 @@ func SaveYltUserToken(phone string, gt_token string, cookie string) error {
 		log.Errorf("SaveYltUserToken MarshalYltUserToken错误, phone:%s, err:%v", phone, err)
 		return err
 	}
-	err = uredis.SetString(uredis.RedisCon, key, string(rawBytes), KeyYltUserTokenTimeout)
+	// 随机偏移时间 1-10 mins，防止下次刷新token频繁登录
+	randOffset := int64(common.RandomInt(60, 600))
+	err = uredis.SetString(uredis.RedisCon, key, string(rawBytes), KeyYltUserTokenTimeout+randOffset)
 	log.Debugf("SaveYltUserToken params, phone:%s, err:%v", phone, err)
 	return err
 }

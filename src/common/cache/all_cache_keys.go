@@ -7,17 +7,17 @@ import (
 const (
 	// jxs用户登录态
 	KeyJxsUserToken        string = "JxsUser:%v" // userId
-	KeyJxsUserTokenTimeout        = 30 * 60 // 用户Token有效时长30分钟
+	KeyJxsUserTokenTimeout        = 30 * 60      // 用户Token有效时长30分钟
 
 	// jxs邮箱验证
-	KeyJxsVerifyMailCode string = "JxsVEmailCode:%v:%v" // ip:toEmail
-	KeyJxsVerifyMailCodeMinsLimit = 5
-	KeyJxsVerifyMailCodeTimeout = KeyJxsVerifyMailCodeMinsLimit * 60 // 邮箱验证码有效时长5分钟
+	KeyJxsVerifyMailCode          string = "JxsVEmailCode:%v:%v" // ip:toEmail
+	KeyJxsVerifyMailCodeMinsLimit        = 5
+	KeyJxsVerifyMailCodeTimeout          = KeyJxsVerifyMailCodeMinsLimit * 60 // 邮箱验证码有效时长5分钟
 
 	// ylt登录态
 	KeyYltUserPrefix       string = "YltUser"
 	KeyYltUserToken        string = KeyYltUserPrefix + ":%v" // phone
-	KeyYltUserTokenTimeout        = 3 * 60 * 60 // YLT Token有效时长3小时
+	KeyYltUserTokenTimeout        = 3 * 60 * 60              // YLT Token有效时长3小时
 )
 
 // jxs用户登录态Key
