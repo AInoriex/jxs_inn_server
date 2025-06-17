@@ -30,8 +30,8 @@ func SendEmail(addressee string, title string, text string) error {
     message := gomail.NewMessage()
     message.SetHeader("From", config.CommonConfig.Smtp.Username) // 发件人邮箱
     message.SetHeader("To", addressee) // 收件人邮箱
-    message.SetHeader("Subject", "Hello from the AInoriex") // 邮件主题
-    message.SetBody("text/plain", "Hello World.") // 邮件内容
+    message.SetHeader("Subject", title) // 邮件主题
+    message.SetBody("text/plain", text) // 邮件内容
 
     // Set up the SMTP dialer
     dialer := gomail.NewDialer(config.CommonConfig.Smtp.Host, config.CommonConfig.Smtp.Port, config.CommonConfig.Smtp.Username, config.CommonConfig.Smtp.Password)
@@ -41,6 +41,6 @@ func SendEmail(addressee string, title string, text string) error {
         log.Errorf("SendEmail failed to send email: %v", err)
         return err
     } 
-	log.Infof("SendEmail sent successfully")
+	log.Infof("SendEmail sent successfully, addressee: %s", addressee)
 	return nil
 }

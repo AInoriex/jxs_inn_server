@@ -43,13 +43,25 @@ func (User) TableName() string {
 	return "users"
 }
 
+// 用户登录请求体
 type UserLoginReq struct {
 	Email          string `json:"email"`
 	HashedPassword string `json:"password"`
 }
 
+// 用户注册请求体
 type UserRegisterReq struct {
 	Name           string `json:"name"`
 	Email          string `json:"email"`
 	HashedPassword string `json:"password"`
+}
+
+// 用户刷新token请求体
+type UserRefreshTokenReq struct {
+	OldToken string `json:"token"`
+}
+
+// 校验用户邮箱请求体
+type UserVerifyEmailReq struct {
+	Email string `json:"email"`
 }

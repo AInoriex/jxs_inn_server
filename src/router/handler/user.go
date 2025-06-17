@@ -9,7 +9,9 @@ import (
 	"eshop_server/src/router/model"
 	uerrors "eshop_server/src/utils/errors"
 	"eshop_server/src/utils/log"
+	"eshop_server/src/utils/mail"
 	"eshop_server/src/utils/uuid"
+	"fmt"
 	"strings"
 	"time"
 
@@ -195,9 +197,7 @@ func UserRefreshToken(c *gin.Context) {
 	// TODO 添加IP风控
 
 	// JSON解析
-	var reqbody struct {
-		OldToken string `json:"token"`
-	}
+	var reqbody model.UserRefreshTokenReq
 	err = json.Unmarshal(req, &reqbody)
 	if err != nil {
 		log.Error("UserRegister json解析失败", zap.Error(err))
@@ -266,6 +266,64 @@ func GetUserInfo(c *gin.Context) {
 	Success(c, dataMap)
 }
 
+// @Title		校验用户注册邮箱
+// @Description	往邮箱发送验证码
+// @Produce      json
+// @Router       /v1/eshop_api/user/verify_email [post]
+func VerifyEmail(c *gin.Context) {
+	var err error
+	req := GetGinBody(c)
+	dataMap := make(map[string]interface{})
+	log.Infof("VerifyEmail 请求参数, reqbody:%s", string(req))
+
+	// TODO 添加IP风控
+	clientIp := c.ClientIP()
+
+	// JSON解析
+	var reqbody model.UserVerifyEmailReq
+	err = json.Unmarshal(req, &reqbody)
+	if err != nil {
+		log.Errorf("VerifyEmail json解析失败, error:%v", err)
+		Fail(c, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Code, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Detail)
+		return
+	}
+	// 校验邮箱
+	if !isValidEmail(reqbody.Email) {
+		log.Errorf("VerifyEmail 邮箱格式错误, reqbody.email:%s", reqbody.Email)
+		Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail)
+		return
+	}
+
+	// 校验邮箱是否已注册
+	user, err := dao.GetUserByEmail(reqbody.Email)
+	if err == nil || user.Id != "" {
+		log.Errorf("VerifyEmail 注册邮箱已存在, userId:%s, userName:%s, userEmail:%s", user.Id, user.Name, user.Email)
+		Fail(c, uerrors.Parse(uerrors.ErrorRegisterMailExisted.Error()).Code, uerrors.Parse(uerrors.ErrorRegisterMailExisted.Error()).Detail)
+		return
+	}
+
+	// 缓存验证码
+	code := mail.GenerateRandomEmailCode()
+	err = cache.SaveJxsVerifyMailCode(clientIp, reqbody.Email, code)
+	if err != nil {
+		log.Errorf("VerifyEmail 缓存验证码失败, clientIp:%s, toEmail:%s, error:%v", clientIp, reqbody.Email, err)
+		Fail(c, uerrors.Parse(uerrors.ErrBusy.Error()).Code, uerrors.Parse(uerrors.ErrBusy.Error()).Detail)
+		return
+	}
+
+	// 发送验证码
+	err = SendEshopVerifyCodeToEmail(reqbody.Email, code)
+	if err != nil {
+		log.Errorf("VerifyEmail 发送验证码失败, toEmail:%s, error:%v", reqbody.Email, err)
+		Fail(c, uerrors.Parse(uerrors.ErrBusy.Error()).Code, uerrors.Parse(uerrors.ErrBusy.Error()).Detail)
+		return
+	}
+
+	// TODO 飞书通知
+	log.Infof("VerifyEmail 发送验证码邮件成功, toEmail:%s, code:%s", reqbody.Email, code)
+	Success(c, dataMap)
+}
+
 // 邮箱有效性判断
 func isValidEmail(email string) bool {
 	if email == "" {
@@ -299,4 +357,17 @@ func isValidUser(c *gin.Context) (user *model.User, err error) {
 		return
 	}
 	return
+}
+
+// 发送Eshop的邮箱验证码
+// 有效时间为cache.KeyJxsVerifyMailCodeMinsLimit分钟，全局搜索
+func SendEshopVerifyCodeToEmail(toemail string, code string) (err error) {
+	title := "【江心上客栈】请确认您的新账户..."
+	text := fmt.Sprintf("欢迎来到江心上客栈。您的验证码为：%s，有效时间%v分钟。祝您入住愉快。", code, cache.KeyJxsVerifyMailCodeMinsLimit)
+	err = mail.SendEmail(toemail, title, text)
+	if err != nil {
+		log.Errorf("SendEshopVerifyCodeToEmail 发送验证码邮件失败, to:%s, title:%s, text:%s, error:%v", toemail, title, text, err)
+		return err
+	}
+	return nil
 }

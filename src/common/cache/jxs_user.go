@@ -36,3 +36,35 @@ func DelJxsUserToken(userId string) bool {
 	log.Debugf("DelJxsUserToken params, userId:%s, err:%v", userId, err)
 	return err == nil
 }
+
+// 获取jxs邮箱验证
+func GetJxsVerifyMailCode(ip string, toEmail string) (bool, string) {
+	key := GetJxsVerifyMailCodeKey(ip, toEmail)
+	b, err := uredis.GetString(uredis.RedisCon, key)
+	if err != nil {
+		//log.Errorf("GetJxsVerifyMailCode redis错误", zap.Any("data", b), zap.Error(err))
+		return false, ""
+	} else {
+		if b == nil {
+			//log.Errorf("GetJxsVerifyMailCode redis为空", zap.Any("data", b), zap.Error(err))
+			return false, ""
+		}
+		return true, string(b)
+	}
+}
+
+// 保存jxs邮箱验证
+func SaveJxsVerifyMailCode(ip string, toEmail string, code string) error {
+	key := GetJxsVerifyMailCodeKey(ip, toEmail)
+	err := uredis.SetString(uredis.RedisCon, key, code, KeyJxsVerifyMailCodeTimeout)
+	log.Debugf("SaveJxsVerifyMailCode params, ip:%s, toEmail:%s, err:%v", ip, toEmail, err)
+	return err
+}
+
+// 删除jxs邮箱验证
+func DelJxsVerifyMailCode(ip string, toEmail string) bool {
+	key := GetJxsVerifyMailCodeKey(ip, toEmail)
+	err := uredis.DelKey(uredis.RedisCon, key)
+	log.Debugf("DelJxsVerifyMailCode params, ip:%s, toEmail:%s, err:%v", ip, toEmail, err)
+	return err == nil
+}
