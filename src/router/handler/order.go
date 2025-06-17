@@ -37,7 +37,7 @@ func CreateUserOrder(c *gin.Context) {
 	var reqbody model.CreateOrderReq
 	err = json.Unmarshal(req, &reqbody)
 	if err != nil {
-		log.Error("CreateOrder json解析失败", zap.Error(err))
+		log.Errorf("CreateOrder json解析失败, error:%v", err)
 		Fail(c, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Code, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Detail)
 		return
 	}

@@ -95,7 +95,7 @@ func CreateCart(c *gin.Context) {
 	var reqbody model.CreateCartItemReq
 	err = json.Unmarshal(req, &reqbody)
 	if err != nil {
-		log.Error("CreateCart json解析失败", zap.Error(err))
+		log.Errorf("CreateCart json解析失败, error:%v", err)
 		Fail(c, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Code, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Detail)
 		return
 	}
@@ -170,7 +170,7 @@ func RemoveCart(c *gin.Context) {
 	var reqbody model.RemoveCartItemReq
 	err = json.Unmarshal(req, &reqbody)
 	if err != nil {
-		log.Error("RemoveCart json解析失败", zap.Error(err))
+		log.Errorf("RemoveCart json解析失败, error:%v", err)
 		Fail(c, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Code, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Detail)
 		return
 	}

@@ -60,7 +60,7 @@ func CreateProduct(c *gin.Context) {
 	var reqbody model.Products
 	err = json.Unmarshal(req, &reqbody)
 	if err != nil {
-		log.Error("CreateProduct json解析失败", zap.Error(err))
+		log.Errorf("CreateProduct json解析失败, error:%v", err)
 		Fail(c, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Code, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Detail)
 		return
 	}
