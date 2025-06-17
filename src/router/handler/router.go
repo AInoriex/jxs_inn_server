@@ -24,7 +24,8 @@ func InitRouter() {
 		// 登录路由
 		auth := api.Group("/auth")
 		{
-			auth.POST("/register", UserRegister)
+			// auth.POST("/register", UserRegister)
+			auth.POST("/register", UserRegisterWithVerifyCode)
 			auth.POST("/login", UserLogin)
 			auth.GET("/logout", UserLogout)
 			auth.POST("/refresh_token", UserRefreshToken)

@@ -28,7 +28,6 @@ func UserLogin(c *gin.Context) {
 	var err error
 	req := GetGinBody(c)
 	dataMap := make(map[string]interface{})
-	// attrMap := make(map[string]interface{})
 	log.Info("UserLogin 请求参数", zap.String("body", string(req)))
 
 	// TODO 添加IP风控
@@ -141,7 +140,6 @@ func UserRegister(c *gin.Context) {
 	var err error
 	req := GetGinBody(c)
 	dataMap := make(map[string]interface{})
-	// attrMap := make(map[string]interface{})
 	log.Info("UserRegister 请求参数", zap.String("body", string(req)))
 
 	// TODO 添加IP风控
@@ -179,6 +177,73 @@ func UserRegister(c *gin.Context) {
 
 	// 返回
 	log.Infof("UserRegister 用户注册成功，user_id:%v, name:%v, email:%v", new_user.Id, new_user.Name, new_user.Email)
+	Success(c, dataMap)
+}
+
+// @Title        用户注册
+// @Description  邮箱+密码+邮箱验证码注册
+// @Param        json
+// @Produce      json
+// @Router       /v1/eshop_api/auth/register [post]
+func UserRegisterWithVerifyCode(c *gin.Context) {
+	var err error
+	req := GetGinBody(c)
+	dataMap := make(map[string]interface{})
+	log.Infof("UserRegisterWithVerifyCode 请求参数, req:%s", string(req))
+
+	// JSON解析
+	var reqbody model.UserRegisterReq
+	err = json.Unmarshal(req, &reqbody)
+	if err != nil {
+		log.Errorf("UserRegisterWithVerifyCode json解析失败, error:%v", err)
+		Fail(c, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Code, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Detail)
+		return
+	}
+
+	// 验证码校验
+	if reqbody.VerifyCode == "" {
+		log.Errorf("UserRegisterWithVerifyCode 验证码为空")
+		Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":验证码为空")
+		return
+	}
+	flag, verifyCode := cache.GetJxsVerifyMailCode(c.ClientIP(), reqbody.Email)
+	if !flag {
+		log.Errorf("UserRegisterWithVerifyCode 请求的验证码不存在, clientIp:%v, reqbody.Email:%v", c.ClientIP(), reqbody.Email)
+		Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":验证码错误")
+		return
+	}
+	if reqbody.VerifyCode != verifyCode {
+		log.Errorf("UserRegisterWithVerifyCode 验证码错误, cache.VerifyCode:%v, reqbody.VerifyCode:%v", verifyCode, reqbody.VerifyCode)
+		Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":验证码错误")
+		return
+	}
+	// 移除缓存验证码
+	cache.DelJxsVerifyMailCode(c.ClientIP(), reqbody.Email)
+
+	// 查询用户是否存在
+	user, err := dao.GetUserByEmail(reqbody.Email)
+	if err == nil || user.Id != "" {
+		log.Error("UserRegisterWithVerifyCode 邮箱已存在，注册失败", zap.String("user_id", user.Id), zap.String("name", user.Name), zap.String("email", user.Email))
+		Fail(c, uerrors.Parse(uerrors.ErrorRegisterMailExisted.Error()).Code, uerrors.Parse(uerrors.ErrorRegisterMailExisted.Error()).Detail)
+		return
+	}
+
+	// 创建新用户
+	new_user := &model.User{
+		Id:       uuid.GetUuid(), // 随机生成用户ID字符串
+		Name:     reqbody.Name,
+		Email:    reqbody.Email,
+		Password: reqbody.HashedPassword,
+	}
+	_, err = dao.CreateUser(new_user)
+	if err != nil {
+		log.Error("UserRegisterWithVerifyCode 创建用户失败", zap.Error(err))
+		Fail(c, uerrors.Parse(uerrors.ErrBusy.Error()).Code, uerrors.Parse(uerrors.ErrBusy.Error()).Detail)
+		return
+	}
+
+	// 返回
+	log.Infof("UserRegisterWithVerifyCode 用户注册成功，user_id:%v, name:%v, email:%v", new_user.Id, new_user.Name, new_user.Email)
 	Success(c, dataMap)
 }
 

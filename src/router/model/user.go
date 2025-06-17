@@ -54,6 +54,7 @@ type UserRegisterReq struct {
 	Name           string `json:"name"`
 	Email          string `json:"email"`
 	HashedPassword string `json:"password"`
+	VerifyCode     string `json:"code"`
 }
 
 // 用户刷新token请求体
