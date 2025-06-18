@@ -1,3 +1,6 @@
+-- 切换到eshop数据库
+USE eshop;
+
 -- @Author AInoriex
 -- @Desc 用于记录用户购物车信息
 -- @Chge 2025年5月5日16点38分 取消外键users(id), products(id)

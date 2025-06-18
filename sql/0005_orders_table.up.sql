@@ -1,3 +1,6 @@
+-- 切换到eshop数据库
+USE eshop;
+
 -- @Author AInoriex
 -- @Desc 创建订单与商品关联表, 记录用户购买商品数量和订单金额, 外键关联用户ID和商品ID
 -- @Desc 新增order_items表以支持一个订单与多个商品关联

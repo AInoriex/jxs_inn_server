@@ -1,3 +1,6 @@
+-- 切换到eshop数据库
+USE eshop;
+
 -- 删除所有表结构和数据
 DROP TABLE IF EXISTS `payments`;
 DROP TABLE IF EXISTS `purchase_history`;

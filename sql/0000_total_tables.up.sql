@@ -1,5 +1,11 @@
+-- 创建数据库eshop
+CREATE DATABASE IF NOT EXISTS eshop;
+
+-- 切换到eshop数据库
+USE eshop;
+
 -- @Author AInoriex
--- @Desc 目前只支持邮箱一种方式登陆
+-- @Desc 目前只支持邮箱一种方式登录
 -- @Chge 2025年5月6日11点06分 id int(11) -> varchar(32)
 -- @TODO 用户角色：如果未来有管理员、普通用户等不同角色, 可以增加一个role字段, 用于区分用户权限。
 -- @TODO 联系方式：除了邮箱, 可以增加手机号字段, 方便用户接收验证码、订单通知等信息。

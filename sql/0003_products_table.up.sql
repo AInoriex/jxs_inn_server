@@ -1,3 +1,6 @@
+-- 切换到eshop数据库
+USE eshop;
+
 -- @Author AInoriex
 -- @Desc 用于记录商品基本信息
 -- @TODO 补充特定商品的属性信息(音声格式, 音声时长……)
