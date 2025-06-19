@@ -18,6 +18,6 @@ func InitRouter() {
 		api.GET("/player/:filename", StreamingPlayer)
 	}
 
-	log.Infof("初始化路由成功, URL：%s", config.CommonConfig.HttpServer.Addr)
+	log.Infof("初始化流媒体服务成功, URL：%s", config.CommonConfig.HttpServer.Addr)
 	router.Run(config.CommonConfig.StreamServer.Addr)
 }
