@@ -1,6 +1,7 @@
 test
 temp
 doc
+release
 *.yaml
 *.log
 *.m3u8
