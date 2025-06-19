@@ -13,8 +13,14 @@ import (
 var logger *zap.Logger
 
 // 初始化日志
-func InitLogger() *zap.Logger {
-	var module string = config.CommonConfig.AppName
+func InitLogger(module string) *zap.Logger {
+	if module == "" {
+		if config.CommonConfig.AppName != "" {
+			module = config.CommonConfig.AppName
+		} else {
+			module = "server"
+		}
+	} 
 	var logPath string = config.CommonConfig.Log.SavePath
 	if err := os.MkdirAll(logPath, 0755); err != nil {
 		panic(err)

@@ -19,7 +19,7 @@ func main() {
 	}
 
 	// 初始化日志
-	log.InitLogger()
+	log.InitLogger("router")
 	defer log.Sync()
 	log.Info("初始化日志成功")
 

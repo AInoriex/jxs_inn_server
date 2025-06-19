@@ -20,7 +20,7 @@ func main() {
 	}
 
 	// 初始化日志
-	log.InitLogger()
+	log.InitLogger("stream")
 	defer log.Sync()
 	log.Info("初始化日志成功")
 
