@@ -26,6 +26,7 @@ CREATE TABLE payments (
 -- @Author  AInoriex
 -- @Des     用于记录用户的购买历史&商品权限表
 -- @Create  2025年5月12日17点15分
+-- @Update  2025年6月20日14点03分 purchase_history表新增订单ID字段
 CREATE TABLE purchase_history (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '购买历史唯一标识',
   `user_id` varchar(32) NOT NULL COMMENT '用户ID(关联用户表)',
@@ -33,6 +34,7 @@ CREATE TABLE purchase_history (
   `quantity` int(8) NOT NULL COMMENT '购买数量',
   `payment_id` varchar(255) NOT NULL COMMENT '支付ID(关联支付表)',
   `purchased_at` datetime DEFAULT NULL COMMENT '支付时间',
+  `order_id` varchar(32) NOT NULL DEFAULT '' COMMENT '订单ID(关联订单表)',
   PRIMARY KEY (`id`),
   KEY `idx_user_id` (`user_id`),
   KEY `idx_user_product_id` (`user_id`,`product_id`)
