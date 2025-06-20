@@ -136,6 +136,7 @@ func CronYltPaymentApiToUpdateOrder(gt_token string, cookie string, payment *rou
 					UserId:      order.UserId,
 					ProductId:   item.ProductId,
 					Quantity:    item.Quantity,
+					OrderId:     order.Id,
 					PaymentId:   payment.Id,
 					PurchasedAt: payment.PurchasedAt,
 				}

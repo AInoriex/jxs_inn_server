@@ -40,6 +40,7 @@ func InitRouter() {
 			user.GET("/info", GetUserInfo)
 			user.POST("/update_info", UpdateUserInfo)
 			user.POST("/reset_password", ResetPassword)
+			user.GET("/purchase_history", GetUserPurchaseHistory)
 
 			// 购物车
 			user.GET("/cart/list", GetCartList)

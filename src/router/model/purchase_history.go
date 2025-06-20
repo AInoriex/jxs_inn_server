@@ -29,10 +29,23 @@ type PurchaseHistory struct {
 	UserId      string    `json:"user_id" gorm:"column:user_id;default:NULL;comment:'用户ID(关联用户表)'"`
 	ProductId   string    `json:"product_id" gorm:"column:product_id;default:NULL;comment:'商品ID(关联商品表)'"`
 	Quantity    int32     `json:"quantity" gorm:"column:quantity;default:NULL;comment:'购买数量'"`
+	OrderId     string    `json:"order_id" gorm:"column:order_id;default:NULL;comment:'订单ID(关联订单表)'"`
 	PaymentId   string    `json:"payment_id" gorm:"column:payment_id;default:NULL;comment:'支付ID(关联支付表)'"`
 	PurchasedAt time.Time `json:"purchased_at" gorm:"column:purchased_at;default:NULL;comment:'支付时间'"`
 }
 
 func (t *PurchaseHistory) TableName() string {
 	return "purchase_history"
+}
+
+// 用户获取历史购买记录响应体
+type GetUserPurchaseHistoryResp struct {
+	Id                 int64     `json:"id"`
+	OrderId            string    `json:"order_id"`
+	ProductName        string    `json:"product_name"`
+	FinalAmount        float64   `json:"final_amount"`
+	Quantity           int32     `json:"quantity"`
+	PurchaseStatus     int32     `json:"-"` // 不传递给前端
+	PurchaseStatusDesc string    `json:"purchase_status_desc"`
+	PurchaseDate       time.Time `json:"purchase_date"`
 }
