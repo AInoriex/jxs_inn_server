@@ -5,6 +5,7 @@ import (
 	"eshop_server/src/stream/model"
 	uerrors "eshop_server/src/utils/errors"
 	"eshop_server/src/utils/log"
+	"eshop_server/src/utils/uuid"
 	"net/http"
 	"os"
 	"os/exec"
@@ -26,8 +27,14 @@ func UploadStreamingFile(c *gin.Context) {
 	}
 	log.Infof("UploadStreamingFile 获取到文件, filename: %s, filesize: %vMB", file.Filename, file.Size/1024/1024)
 
+	// 设置文件名（UUID）
+	localFilename := uuid.GetUuid() + filepath.Ext(file.Filename)
+	dataMap["filename"] = localFilename
+	dataMap["id"] = strings.Split(localFilename, ".")[0]
+	dataMap["ext"] = filepath.Ext(file.Filename)
+
 	// 保存上传的文件
-	srcFile := filepath.Join(model.StreamFileUploadPath, filepath.Base(file.Filename))
+	srcFile := filepath.Join(model.StreamFileUploadPath, localFilename)
 	if err := c.SaveUploadedFile(file, srcFile); err != nil {
 		log.Errorf("UploadStreamingFile 保存文件失败, filename: %s , error: %s", file.Filename, err.Error())
 		router_handler.Fail(c, uerrors.Parse(uerrors.ErrorStreamFileUploadFailed.Error()).Code, uerrors.Parse(uerrors.ErrorStreamFileUploadFailed.Error()).Detail)
