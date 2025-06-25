@@ -31,11 +31,11 @@ func UploadStreamingFile(c *gin.Context) {
 	localFilename := uuid.GetUuid() + filepath.Ext(file.Filename)
 	dataMap["filename"] = localFilename
 	dataMap["id"] = strings.Split(localFilename, ".")[0]
-	dataMap["ext"] = filepath.Ext(file.Filename)
-
+	dataMap["ext"] = strings.Split(localFilename, ".")[1]
+	
 	// 保存上传的文件
 	srcFile := filepath.Join(model.StreamFileUploadPath, localFilename)
-	if err := c.SaveUploadedFile(file, srcFile); err != nil {
+	if err = c.SaveUploadedFile(file, srcFile); err != nil {
 		log.Errorf("UploadStreamingFile 保存文件失败, filename: %s , error: %s", file.Filename, err.Error())
 		router_handler.Fail(c, uerrors.Parse(uerrors.ErrorStreamFileUploadFailed.Error()).Code, uerrors.Parse(uerrors.ErrorStreamFileUploadFailed.Error()).Detail)
 		return

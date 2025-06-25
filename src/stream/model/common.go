@@ -2,7 +2,7 @@ package model
 
 import (
 	"os"
-	"path/filepath"
+	// "path/filepath"
 )
 
 const (
@@ -10,12 +10,12 @@ const (
 	StreamFileSegmentPath string = "segments" // 音频切片路径
 )
 
-// 初始化路径
-func InitStreamingPaths() error {
-	if err := os.MkdirAll(filepath.Dir(StreamFileUploadPath), 0750); err != nil {
+// 初始化流媒体服务路径
+func InitStreamingPaths() (err error) {
+	if err = os.MkdirAll(StreamFileUploadPath, os.ModePerm); err != nil {
 		return err
 	}
-	if err := os.MkdirAll(filepath.Dir(StreamFileSegmentPath), 0750); err != nil {
+	if err = os.MkdirAll(StreamFileSegmentPath, os.ModePerm); err != nil {
 		return err
 	}
 	return nil

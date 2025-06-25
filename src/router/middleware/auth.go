@@ -39,7 +39,7 @@ func ParseAuthorization() gin.HandlerFunc {
 		// 检查Token格式：{TokenType} {TokenString}
 		parts := strings.SplitN(authHeader, " ", 2)
 		if !(len(parts) == 2 && parts[0] == TokenType) {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "认证头格式错误"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "认证格式错误"})
 			return
 		}
 
@@ -65,17 +65,17 @@ func ParseAuthorization() gin.HandlerFunc {
 		}
 
 		// 自动刷新机制
-		if claims.ExpiresAt-time.Now().Unix() < int64(TokenRefreshWindow.Seconds()) {
-			newToken, err := generateToken(claims.UserId, claims.Roles)
-			if err == nil {
-				// 刷新token时更新Redis缓存
-				if err := cache.SaveJxsUserToken(claims.UserId, newToken); err != nil {
-					log.Errorf("ParseAuthorization 更新Redis新token失败, userId:%s, token:%s, err:%s", claims.UserId, newToken, err.Error())
-				} else {
-					c.Header("Set-Access-Token", newToken) // 设置请求头要求前端刷新token
-				}
-			}
-		}
+		// if claims.ExpiresAt-time.Now().Unix() < int64(TokenRefreshWindow.Seconds()) {
+		// 	newToken, err := generateToken(claims.UserId, claims.Roles)
+		// 	if err == nil {
+		// 		// 刷新token时更新Redis缓存
+		// 		if err := cache.SaveJxsUserToken(claims.UserId, newToken); err != nil {
+		// 			log.Errorf("ParseAuthorization 更新Redis新token失败, userId:%s, token:%s, err:%s", claims.UserId, newToken, err.Error())
+		// 		} else {
+		// 			c.Header("Set-Access-Token", newToken) // 设置请求头要求前端刷新token
+		// 		}
+		// 	}
+		// }
 
 		// 存储用户上下文
 		c.Set("userId", claims.UserId)

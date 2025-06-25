@@ -52,7 +52,7 @@ func GetProductsByStatus(status int32) (res []*model.Products, err error) {
 // @Author  AInoriex  (2024/07/22 18:05)
 func CreateProduct(m *model.Products) (res *model.Products, err error) {
 	log.Info("CreateProduct", zap.Any("req", m))
-	m.CreateTime = time.Now()
+	m.CreateAt = time.Now()
 
 	err, _ = db.Create(db.MysqlCon, &m)
 	if err != nil {

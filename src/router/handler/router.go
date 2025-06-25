@@ -63,7 +63,7 @@ func InitRouter() {
 		admin.Use(middleware.ParseAuthorization(), middleware.RequireRole("admin"))
 		{
 			// 商品操作
-			product := api.Group("/product")
+			product := admin.Group("/product")
 			{
 				// product.GET("/list", GetProductList)
 				product.POST("/create", CreateProduct)

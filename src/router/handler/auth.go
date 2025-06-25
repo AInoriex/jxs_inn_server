@@ -396,7 +396,7 @@ func isValidUser(c *gin.Context) (user *model.User, err error) {
 	}
 	user, err = dao.GetUserById(userId)
 	if err != nil {
-		return
+		return nil, err
 	}
 	return
 }
