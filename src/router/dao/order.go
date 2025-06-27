@@ -63,8 +63,9 @@ func GetOrderByPaymentId(paymentId string) (res *model.Order, err error) {
 // @Title 获取全部订单记录
 // @Description 管理后台获取全部订单信息
 // @Author AInoriex (2025/05/16 16:43)
-func GetAllOrders(pageNum int, pageSize int) (res []*model.Order, err error) {
-	err = db.MysqlCon.Find(&res).Error
+func GetAllOrders(pageNum int, pageSize int, orderBy string, orderType string) (res []*model.Order, err error) {
+	err = db.MysqlCon.Find(&res).Order(orderBy + " " + orderType).
+		Limit(pageSize).Offset((pageNum - 1) * pageSize).Error
 	if err != nil {
 		log.Error("GetAllOrders fail", zap.Error(err))
 		return nil, err

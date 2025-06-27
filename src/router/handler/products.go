@@ -50,7 +50,8 @@ func AdminGetProductList(c *gin.Context) {
 	log.Infof("AdminGetProductList 请求参数, req:%s", string(req))
 
 	// 获取商品信息
-	resList, err := dao.GetAllProducts()
+	// TODO 分页查询
+	resList, err := dao.GetAllProducts(1, 50, "created_at", "desc")
 	if err != nil {
 		log.Errorf("AdminGetProductList GetAllProducts fail, err:%v", err)
 		Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)

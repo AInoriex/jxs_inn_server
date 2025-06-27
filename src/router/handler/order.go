@@ -222,7 +222,7 @@ func AdminGetUserOrderList(c *gin.Context) {
 
 	// 获取订单信息
 	// TODO 分页查询
-	orders, err := dao.GetAllOrders(0, 0)
+	orders, err := dao.GetAllOrders(1, 50, "created_at", "desc")
 	if err != nil {
 		log.Error("AdminGetUserOrderList fail", zap.Error(err))
 		Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)

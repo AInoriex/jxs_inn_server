@@ -4,8 +4,11 @@ import (
 	"errors"
 	"eshop_server/src/router/dao"
 	"eshop_server/src/router/model"
+	uerrors "eshop_server/src/utils/errors"
 	"eshop_server/src/utils/log"
 	"eshop_server/src/utils/uuid"
+
+	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
@@ -84,4 +87,61 @@ func QrcodeOrderPaymentHandler(reqbody model.CreateOrderReq, order *model.Order,
 	}
 
 	return qrcode, nil
+}
+
+// @Title        获取用户购买历史
+// @Description  通过token认证身份并获取用户购买历史
+// @Produce      json
+// @Router       /v1/eshop_api/user/purchase_history [get]
+func GetUserPurchaseHistory(c *gin.Context) {
+	var err error
+	dataMap := make(map[string]interface{})
+
+	// JWT用户查询&鉴权
+	user, err := isValidUser(c)
+	if err != nil {
+		log.Errorf("GetUserPurchaseHistory 非法用户请求, error:%v", err)
+		FailWithAuthorization(c)
+		return
+	}
+
+	// 查询用户购买历史
+	purchaseHistoryList, err := dao.GetPurchaseHistorysByUserId(user.Id)
+	if err != nil {
+		log.Errorf("GetUserPurchaseHistory 查询用户购买历史失败, error:%v", err)
+		Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
+		return
+	}
+
+	// 查询订单信息
+	var resList []*model.GetUserPurchaseHistoryResp
+	for _, purchaseHistory := range purchaseHistoryList {
+		order, err := dao.GetOrderByOrderId(purchaseHistory.OrderId)
+		if err != nil {
+			log.Errorf("GetUserPurchaseHistory 查询订单信息失败, error:%v", err)
+			continue
+		}
+		// 查询商品信息
+		product, err := dao.GetProductById(purchaseHistory.ProductId)
+		if err != nil {
+			log.Errorf("GetUserPurchaseHistory 查询商品信息失败, error:%v", err)
+			continue
+		}
+
+		// 转换为前端响应格式
+		p := &model.GetUserPurchaseHistoryResp{
+			Id:                 purchaseHistory.Id,
+			OrderId:            purchaseHistory.OrderId,
+			ProductName:        product.Title,
+			FinalAmount:        order.FinalAmount,
+			Quantity:           purchaseHistory.Quantity,
+			PurchaseStatus:     order.PaymentStatus,
+			PurchaseStatusDesc: model.PaymentStatusDescriptionFormat(order.PaymentStatus),
+			PurchaseDate:       purchaseHistory.PurchasedAt,
+		}
+		resList = append(resList, p)
+	}
+
+	dataMap["result"] = resList
+	Success(c, dataMap)
 }

@@ -48,10 +48,11 @@ func GetProductsByStatus(status int32) (res []*model.Products, err error) {
 }
 
 // @Title   获取所有数据记录
-// @Description 商品ID不为空
+// @Description 获取所有数据记录
 // @Author  AInoriex  (2025/06/26 16:22)
-func GetAllProducts() (res []*model.Products, err error) {
-	err = db.MysqlCon.Where("id != ''").Find(&res).Error
+func GetAllProducts(pageNum, pageSize int, orderBy string, orderType string) (res []*model.Products, err error) {
+	err = db.MysqlCon.Find(&res).Order(orderBy + " " + orderType).
+		Limit(pageSize).Offset((pageNum - 1) * pageSize).Error
 	if err != nil {
 		log.Error("GetAllProducts fail", zap.Error(err))
 		return nil, err
