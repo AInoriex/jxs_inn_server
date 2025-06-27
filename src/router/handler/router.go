@@ -2,8 +2,10 @@ package handler
 
 import (
 	"eshop_server/src/router/middleware"
+	"eshop_server/src/router/model"
 	"eshop_server/src/utils/config"
 	"eshop_server/src/utils/log"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -34,7 +36,7 @@ func InitRouter() {
 
 		// 用户权限路由
 		user := api.Group("/user")
-		user.Use(middleware.ParseAuthorization(), middleware.RequireRole("user"))
+		user.Use(middleware.ParseAuthorization(), middleware.RequireRole(model.UserRoleUser))
 		{
 			// 用户信息
 			user.GET("/info", GetUserInfo)
@@ -60,16 +62,29 @@ func InitRouter() {
 
 		// 管理员路由
 		admin := api.Group("/admin")
-		admin.Use(middleware.ParseAuthorization(), middleware.RequireRole("admin"))
+		admin.Use(middleware.ParseAuthorization(), middleware.RequireRole(model.UserRoleAdmin))
 		{
+			// 用户操作
+			// user := admin.Group("/user")
+			// {
+			// 	user.GET("/list", AdminGetUserList)
+			// 	user.PUT("/ban/:id", AdminBanUser)
+			// }
+
 			// 商品操作
 			product := admin.Group("/product")
 			{
-				// product.GET("/list", GetProductList)
-				product.POST("/create", CreateProduct)
-				product.PUT("/remove/:id", RemoveProduct)
+				product.GET("/list", AdminGetProductList)
+				product.POST("/create", AdminCreateProduct)
+				product.PUT("/remove/:id", AdminRemoveProduct)
 				// product.DELETE("/delete/:id", DeleteProduct)
 			}
+
+			// 订单操作
+			// order := admin.Group("/order")
+			// {
+			//  order.GET("/list", GetOrderList)
+			// }
 		}
 	}
 

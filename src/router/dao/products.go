@@ -47,6 +47,19 @@ func GetProductsByStatus(status int32) (res []*model.Products, err error) {
 	return
 }
 
+// @Title   获取所有数据记录
+// @Description 商品ID不为空
+// @Author  AInoriex  (2025/06/26 16:22)
+func GetAllProducts() (res []*model.Products, err error) {
+	err = db.MysqlCon.Where("id != ''").Find(&res).Error
+	if err != nil {
+		log.Error("GetAllProducts fail", zap.Error(err))
+		return nil, err
+	}
+
+	return
+}
+
 // @Title   创建数据记录
 // @Description desc
 // @Author  AInoriex  (2024/07/22 18:05)

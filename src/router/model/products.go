@@ -7,6 +7,8 @@ import (
 const (
 	ProductStatusOff int32 = 0 //下架
 	ProductStatusOn  int32 = 1 //上架
+
+	ProductImageUrlDefault string = "" //默认商品图片链接
 )
 
 /*
@@ -44,9 +46,45 @@ type Products struct {
 	Sales        int64     `json:"sales" gorm:"column:sales;default:0;comment:'商品销量'"`
 	ExternalId   string    `json:"external_id" gorm:"column:external_id;default:NULL;comment:'外部商品ID'"`
 	ExternalLink string    `json:"external_link" gorm:"column:external_link;default:NULL;comment:'外部商品链接'"`
-	CreateTime   time.Time `json:"created_at" gorm:"column:created_at;default:CURRENT_TIMESTAMP;comment:'创建时间'"`
+	CreateAt     time.Time `json:"created_at" gorm:"column:created_at;default:CURRENT_TIMESTAMP;comment:'创建时间'"`
 }
 
 func (t *Products) TableName() string {
 	return "products"
+}
+
+// @Title   创建商品请求参数
+// @Author  AInoriex  (2025/06/24 16:08)
+type CreateProductReq struct {
+	Id           string  `json:"id" binding:"required"`
+	Title        string  `json:"title" binding:"required"`
+	Description  string  `json:"description" binding:"required"`
+	Price        float64 `json:"price" binding:"required"`
+	ImageUrl     string  `json:"image_url"`
+	Sales        int64   `json:"sales"`
+	ExternalId   string  `json:"external_id"`
+	ExternalLink string  `json:"external_link"`
+}
+
+// @Title	用户查看商品列表格式化
+// @Author  AInoriex  (2025/06/26 16:30)
+type ProductUserView struct {
+	Id           string  `json:"id"`
+	Title        string  `json:"title"`
+	Description  string  `json:"description"`
+	Price        float64 `json:"price"`
+	ImageUrl     string  `json:"image_url"`
+	Sales        int64   `json:"sales"`
+}
+
+func (m *Products) UserViewFormat() (resList *ProductUserView) {
+	resList = &ProductUserView{
+		Id:           m.Id,
+		Title:        m.Title,
+		Description:  m.Description,
+		Price:        m.Price,
+		ImageUrl:     m.ImageUrl,
+		Sales:        m.Sales,
+	}
+	return
 }
