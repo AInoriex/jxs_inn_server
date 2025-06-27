@@ -101,13 +101,15 @@ func AdminCreateProduct(c *gin.Context) {
 
 	// 创建上架商品
 	m := model.Products{
-		Id:          reqbody.Id,
-		Title:       reqbody.Title,
-		Description: reqbody.Description,
-		Price:       reqbody.Price,
-		Status:      model.ProductStatusOn, // 默认上架,
-		ImageUrl:    reqbody.ImageUrl,
-		Sales:       reqbody.Sales,
+		Id:           reqbody.Id,
+		Title:        reqbody.Title,
+		Description:  reqbody.Description,
+		Price:        reqbody.Price,
+		Status:       model.ProductStatusOn, // 默认上架,
+		ImageUrl:     reqbody.ImageUrl,
+		Sales:        reqbody.Sales,
+		ExternalId:   reqbody.ExternalId,
+		ExternalLink: reqbody.ExternalLink,
 	}
 	res, err := dao.CreateProduct(&m)
 	if err != nil {

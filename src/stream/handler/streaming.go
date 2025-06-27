@@ -28,10 +28,8 @@ func UploadStreamingFile(c *gin.Context) {
 	log.Infof("UploadStreamingFile 获取到文件, filename: %s, filesize: %vMB", file.Filename, file.Size/1024/1024)
 
 	// 设置文件名（UUID）
-	localFilename := uuid.GetUuid() + filepath.Ext(file.Filename)
-	dataMap["filename"] = localFilename
-	dataMap["id"] = strings.Split(localFilename, ".")[0]
-	dataMap["ext"] = strings.Split(localFilename, ".")[1]
+	file_id := uuid.GetUuid()
+	localFilename := file_id + filepath.Ext(file.Filename)
 	
 	// 保存上传的文件
 	srcFile := filepath.Join(model.StreamFileUploadPath, localFilename)
@@ -42,7 +40,8 @@ func UploadStreamingFile(c *gin.Context) {
 	}
 
 	// 生成m3u8文件和.ts分片文件
-	dstFile := filepath.Join(model.StreamFileSegmentPath, strings.TrimSuffix(file.Filename, filepath.Ext(file.Filename))+".m3u8")
+	// dstFile := filepath.Join(model.StreamFileSegmentPath, strings.TrimSuffix(file.Filename, filepath.Ext(file.Filename))+".m3u8") // 源文件名.m3u8
+	dstFile := filepath.Join(model.StreamFileSegmentPath, file_id+".m3u8") // {file_id}.m3u8
 	err = generateM3U8(srcFile, dstFile)
 	if err != nil {
 		log.Errorf("UploadStreamingFile 生成m3u8文件失败, filename: %s, error: %s", file.Filename, err.Error())
@@ -51,6 +50,9 @@ func UploadStreamingFile(c *gin.Context) {
 	}
 
 	// 返回成功响应
+	dataMap["filename"] = localFilename
+	dataMap["id"] = file_id
+	dataMap["ext"] = strings.Split(localFilename, ".")[1]
 	router_handler.Success(c, dataMap)
 }
 
