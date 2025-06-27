@@ -61,6 +61,13 @@ func UserLogin(c *gin.Context) {
 		return
 	}
 
+	// 验证用户状态
+	if user.Status == model.UserStatusBanned {
+		log.Error("UserLogin 用户已被禁用", zap.String("user_id", user.Id))
+		Fail(c, uerrors.Parse(uerrors.ErrorUserBanned.Error()).Code, uerrors.Parse(uerrors.ErrorUserBanned.Error()).Detail)
+		return
+	}
+
 	// 验证哈希密码是否一致
 	if reqbody.HashedPassword != user.Password {
 		log.Error("UserLogin 密码不一致", zap.String("请求哈希密码", reqbody.HashedPassword), zap.String("目标哈希密码", user.Password))
@@ -70,7 +77,7 @@ func UserLogin(c *gin.Context) {
 
 	// 生成 JWT Token
 	// TODO 新增权限区分生成不同权限token(user/admin)
-	tokenString, err := middleware.GenerateToken(user.Id, []string{"user"})
+	tokenString, err := middleware.GenerateToken(user.Id, user.Roles)
 	if err != nil {
 		log.Error("UserLogin 生成jwt token失败", zap.Error(err))
 		Fail(c, uerrors.Parse(uerrors.ErrBusy.Error()).Code, uerrors.Parse(uerrors.ErrBusy.Error()).Detail)
@@ -83,6 +90,10 @@ func UserLogin(c *gin.Context) {
 		Fail(c, uerrors.Parse(uerrors.ErrRedis.Error()).Code, uerrors.Parse(uerrors.ErrRedis.Error()).Detail)
 		return
 	}
+
+	// 更新用户最后登录时间
+	user.LastLogin = time.Now()
+	dao.UpdateUserByField(user, []string{"last_login"})
 
 	// 返回token
 	dataMap["token_type"] = middleware.TokenType
@@ -163,10 +174,13 @@ func UserRegister(c *gin.Context) {
 
 	// 创建新用户
 	new_user := &model.User{
-		Id:       uuid.GetUuid(), // 随机生成用户ID字符串
-		Name:     reqbody.Name,
-		Email:    reqbody.Email,
-		Password: reqbody.HashedPassword,
+		Id:        uuid.GetUuid(), // 随机生成用户ID字符串
+		Name:      reqbody.Name,
+		Email:     reqbody.Email,
+		Password:  reqbody.HashedPassword,
+		AvatarUrl: "",                           // 默认头像URL为空
+		Roles:     []string{model.UserRoleUser}, // 默认普通用户角色
+		Status:    model.UserStatusNormal,
 	}
 	_, err = dao.CreateUser(new_user)
 	if err != nil {
@@ -282,9 +296,19 @@ func UserRefreshToken(c *gin.Context) {
 		Fail(c, uerrors.Parse(uerrors.ErrBusy.Error()).Code, uerrors.Parse(uerrors.ErrBusy.Error()).Detail)
 		return
 	}
+
+	// 校验user_id是否有效
+	user, err := dao.GetValidUserById(claims.UserId)
+	if err != nil {
+		log.Errorf("UserRefreshToken 查询用户失败, userId:%s, error:%v", claims.UserId, err)
+		Fail(c, uerrors.Parse(uerrors.ErrBusy.Error()).Code, uerrors.Parse(uerrors.ErrBusy.Error()).Detail)
+		return
+	}
+
+	// 校验token是否过期
 	if claims.ExpiresAt < time.Now().Unix() { // token已过期，生成新token
 		log.Warnf("UserRefreshToken token已过期，生成新token, old_token:%s", reqbody.OldToken)
-		newToken, err := middleware.GenerateToken(claims.UserId, claims.Roles)
+		newToken, err := middleware.GenerateToken(user.Id, user.Roles)
 		if err != nil {
 			log.Errorf("UserRefreshToken 生成新token失败, err:%v", err)
 			Fail(c, uerrors.Parse(uerrors.ErrBusy.Error()).Code, uerrors.Parse(uerrors.ErrBusy.Error()).Detail)
@@ -293,7 +317,7 @@ func UserRefreshToken(c *gin.Context) {
 		dataMap["access_token"] = newToken
 	} else if claims.ExpiresAt-time.Now().Unix() < int64(middleware.TokenRefreshWindow.Seconds()) { // token临界过期，在动态刷新token窗口内，生成新token
 		log.Warnf("UserRefreshToken token达刷新临界时间，生成新token, old_token:%s", reqbody.OldToken)
-		newToken, err := middleware.GenerateToken(claims.UserId, claims.Roles)
+		newToken, err := middleware.GenerateToken(user.Id, user.Roles)
 		if err != nil {
 			log.Errorf("UserRefreshToken 生成新token失败, err:%v", err)
 			Fail(c, uerrors.Parse(uerrors.ErrBusy.Error()).Code, uerrors.Parse(uerrors.ErrBusy.Error()).Detail)
@@ -394,7 +418,8 @@ func isValidUser(c *gin.Context) (user *model.User, err error) {
 	if userId == "" {
 		return nil, errors.New("gin.Context用户ID为空")
 	}
-	user, err = dao.GetUserById(userId)
+	// user, err = dao.GetUserById(userId)
+	user, err = dao.GetValidUserById(userId)
 	if err != nil {
 		return nil, err
 	}

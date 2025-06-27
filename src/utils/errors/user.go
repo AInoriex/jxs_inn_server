@@ -55,10 +55,11 @@ const (
 	ErrCodeUserNotFound               int32 = 31046
 	ErrCodeRegisterMailExisted        int32 = 31047
 	ErrCodePasswordNotSame            int32 = 31048
+	ErrorCodeUserBanned               int32 = 31049
 )
 
 var (
-	ErrorUserLoginFail            = New("", "登录失败，请检查您的账号密码", ErrorCodeUserLoginFail)
+	ErrorUserLoginFail            = New("user", "登录失败，请检查您的账号密码", ErrorCodeUserLoginFail)
 	ErrorUserArgsFail             = New("user", "参数有误", ErrorCodeUserArgsFail)
 	ErrorUserAppCfgFail           = New("user", "配置有误", ErrorCodeUserAppCfgFail)
 	ErrorUserTokenFail            = New("user", "access_token有误", ErrorCodeUserTokenFail)
@@ -94,4 +95,5 @@ var (
 	ErrorUserNotFound             = New("user", "用户不存在", ErrCodeUserNotFound)
 	ErrorRegisterMailExisted      = New("user", "该邮箱已被注册，换一个试试吧", ErrCodeRegisterMailExisted)
 	ErrorPasswordNotSame          = New("user", "密码有误", ErrCodePasswordNotSame)
+	ErrorUserBanned               = New("user", "该用户已被禁用，请联系管理员", ErrorCodeUserBanned)
 )

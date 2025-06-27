@@ -26,12 +26,20 @@ var (
 	TokenType          = "Bearer"                                   // token类型
 )
 
+// 公共日志记录方法，除自定义消息外，额外记录请求URL、方法和客户端IP
+func logAuthErrorf(c *gin.Context, format string, v ...interface{}) {
+	format = format + ", url:%s, method:%s, ip:%s"
+	args := append(v, c.Request.URL, c.Request.Method, c.ClientIP())
+	log.Errorf(format, args...)
+}
+
 // 用户接口权限校验
 func ParseAuthorization() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 从Header获取Authorization
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
+			logAuthErrorf(c, "ParseAuthorization WITHOUT `Authorization` headers")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "权限不足"})
 			return
 		}
@@ -39,6 +47,7 @@ func ParseAuthorization() gin.HandlerFunc {
 		// 检查Token格式：{TokenType} {TokenString}
 		parts := strings.SplitN(authHeader, " ", 2)
 		if !(len(parts) == 2 && parts[0] == TokenType) {
+			logAuthErrorf(c, "ParseAuthorization 认证格式错误, authHeader:%s", authHeader)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "认证格式错误"})
 			return
 		}
@@ -47,6 +56,7 @@ func ParseAuthorization() gin.HandlerFunc {
 		requestToken := parts[1]
 		claims, err := ValidateToken(requestToken)
 		if err != nil {
+			logAuthErrorf(c, "ParseAuthorization 校验token失败, token:%s, err:%s", requestToken, err.Error())
 			HandleTokenError(c, err)
 			return
 		}
@@ -54,12 +64,12 @@ func ParseAuthorization() gin.HandlerFunc {
 		// 校验Redis中的token是否有效（与当前请求token一致）
 		flag, cachedToken := cache.GetJxsUserToken(claims.UserId)
 		if !flag {
-			log.Errorf("ParseAuthorization 读取缓存失败, userId:%s", claims.UserId)
+			logAuthErrorf(c, "ParseAuthorization 读取缓存失败, userId:%s", claims.UserId)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "认证凭证无效"})
 			return
 		}
 		if cachedToken != requestToken {
-			log.Errorf("ParseAuthorization 缓存token与请求token不一致, userId:%s, requestToken:%s, cachedToken:%s", claims.UserId, requestToken, cachedToken)
+			logAuthErrorf(c, "ParseAuthorization 缓存token与请求token不一致, userId:%s, requestToken:%s, cachedToken:%s", claims.UserId, requestToken, cachedToken)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "认证凭证已失效"})
 			return
 		}

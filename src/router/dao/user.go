@@ -21,6 +21,19 @@ func GetUserById(id string) (res *model.User, err error) {
 	return
 }
 
+// @Title   根据用户Id查询非黑名单用户信息
+// @Description 用户id
+// @Author  AInoriex  (2025/06/25 17:50)
+func GetValidUserById(id string) (res *model.User, err error) {
+	err = db.MysqlCon.Where("id = ?", id).Where("status = ?", model.UserStatusNormal).First(&res).Error
+	if err != nil {
+		log.Error("GetValidUserById fail", zap.Error(err))
+		return nil, err
+	}
+
+	return
+}
+
 // @Title   根据邮箱获取用户信息
 // @Description 邮箱email
 // @Author  AInoriex  (2024/07/22 18:05)
@@ -28,6 +41,19 @@ func GetUserByEmail(email string) (res *model.User, err error) {
 	err = db.MysqlCon.Where("email = ?", email).First(&res).Error
 	if err != nil {
 		log.Error("GetUserByEmail fail", zap.Error(err))
+		return res, err
+	}
+
+	return res, nil
+}
+
+// @Title   根据邮箱获取非黑名单用户信息
+// @Description 邮箱email
+// @Author  AInoriex  (2025/06/25 17:50)
+func GetValidUserByEmail(email string) (res *model.User, err error) {
+	err = db.MysqlCon.Where("email = ?", email).Where("status = ?", model.UserStatusNormal).First(&res).Error
+	if err != nil {
+		log.Error("GetValidUserByEmail fail", zap.Error(err))
 		return res, err
 	}
 
