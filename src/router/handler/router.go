@@ -26,12 +26,16 @@ func InitRouter() {
 		// 登录路由
 		auth := api.Group("/auth")
 		{
+			// 网站
 			// auth.POST("/register", UserRegister)
 			auth.POST("/register", UserRegisterWithVerifyCode)
 			auth.POST("/login", UserLogin)
 			auth.GET("/logout", UserLogout)
 			auth.POST("/refresh_token", UserRefreshToken)
 			auth.POST("/verify_email", VerifyEmail)
+			
+			// 管理后台
+			auth.POST("/admin_login", AdminLogin)
 		}
 
 		// 用户权限路由

@@ -101,6 +101,102 @@ func UserLogin(c *gin.Context) {
 	Success(c, dataMap)
 }
 
+// @Title        管理后台登录
+// @Description  邮箱+密码登录
+// @Param        json
+// @Produce      json
+// @Router       /v1/eshop_api/auth/login [post]
+func AdminLogin(c *gin.Context) {
+	var err error
+	req := GetGinBody(c)
+	dataMap := make(map[string]interface{})
+	log.Info("AdminLogin 请求参数", zap.String("body", string(req)))
+
+	// TODO 添加IP风控
+
+	// JSON解析
+	var reqbody model.UserLoginReq
+	err = json.Unmarshal(req, &reqbody)
+	if err != nil {
+		log.Errorf("AdminLogin json解析失败, error:%v", err)
+		Fail(c, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Code, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Detail)
+		return
+	}
+
+	// 参数有效性判断
+	if !isValidEmail(reqbody.Email) {
+		log.Error("AdminLogin 邮箱格式无效", zap.String("email", reqbody.Email))
+		Fail(c, uerrors.Parse(uerrors.ErrorUserLoginFail.Error()).Code, uerrors.Parse(uerrors.ErrorUserLoginFail.Error()).Detail)
+		return
+	}
+	if !isValidPassword(reqbody.HashedPassword) {
+		log.Error("AdminLogin 密码格式无效", zap.String("password", reqbody.HashedPassword))
+		Fail(c, uerrors.Parse(uerrors.ErrorUserLoginFail.Error()).Code, uerrors.Parse(uerrors.ErrorUserLoginFail.Error()).Detail)
+		return
+	}
+
+	// 查询用户是否存在
+	user, err := dao.GetUserByEmail(reqbody.Email)
+	if err != nil {
+		log.Error("AdminLogin 查询用户失败", zap.Error(err))
+		Fail(c, uerrors.Parse(uerrors.ErrorUserNotFound.Error()).Code, uerrors.Parse(uerrors.ErrorUserNotFound.Error()).Detail)
+		return
+	}
+
+	// 验证用户状态
+	if user.Status == model.UserStatusBanned {
+		log.Error("AdminLogin 用户已被禁用", zap.String("user_id", user.Id))
+		Fail(c, uerrors.Parse(uerrors.ErrorUserBanned.Error()).Code, uerrors.Parse(uerrors.ErrorUserBanned.Error()).Detail)
+		return
+	}
+
+	// 验证哈希密码是否一致
+	if reqbody.HashedPassword != user.Password {
+		log.Error("AdminLogin 密码不一致", zap.String("请求哈希密码", reqbody.HashedPassword), zap.String("目标哈希密码", user.Password))
+		Fail(c, uerrors.Parse(uerrors.ErrorUserLoginFail.Error()).Code, uerrors.Parse(uerrors.ErrorUserLoginFail.Error()).Detail)
+		return
+	}
+
+	// 验证管理员权限
+	_roleCheckPass := false
+	for _, role := range user.Roles {
+		if role == model.UserRoleAdmin {
+			_roleCheckPass = true
+			break
+		}
+	}
+	if !_roleCheckPass {
+		log.Errorf("AdminLogin 用户权限不足, user_id:%s, roles:%v", user.Id, user.Roles)
+		Fail(c, uerrors.Parse(uerrors.ErrorShopUserUnAuthorization.Error()).Code, uerrors.Parse(uerrors.ErrorShopUserUnAuthorization.Error()).Detail)
+		return
+	}
+
+	// 生成 JWT Token
+	// TODO 新增权限区分生成不同权限token(user/admin)
+	tokenString, err := middleware.GenerateToken(user.Id, user.Roles)
+	if err != nil {
+		log.Error("AdminLogin 生成jwt token失败", zap.Error(err))
+		Fail(c, uerrors.Parse(uerrors.ErrBusy.Error()).Code, uerrors.Parse(uerrors.ErrBusy.Error()).Detail)
+		return
+	}
+
+	// 缓存保存token
+	if err = cache.SaveJxsUserToken(user.Id, tokenString); err != nil {
+		log.Errorf("AdminLogin 缓存保存JxsUserToken失败, user_id:%v, token:%s, err:%v", user.Id, tokenString, err)
+		Fail(c, uerrors.Parse(uerrors.ErrRedis.Error()).Code, uerrors.Parse(uerrors.ErrRedis.Error()).Detail)
+		return
+	}
+
+	// 更新用户最后登录时间
+	user.LastLogin = time.Now()
+	dao.UpdateUserByField(user, []string{"last_login"})
+
+	// 返回token
+	dataMap["token_type"] = middleware.TokenType
+	dataMap["access_token"] = tokenString
+	Success(c, dataMap)
+}
+
 // @Title      	 用户登出
 // @Description  登出
 // @Produce      json
