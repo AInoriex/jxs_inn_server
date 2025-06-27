@@ -248,7 +248,7 @@ func YltCheckOrder(gt_token string, cookie string, yltOrderId string) (payOk boo
 // TODO
 // @Title	获取购买的商品信息
 // @Method	POST
-func _YltGetPurchasedProductInfo(gt_token string, cookie string, productId string) error {
+func LocalTestYltGetPurchasedProductInfo(gt_token string, cookie string, productId string) error {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", fmt.Sprintf("https://yuanlitui.com/api/product/getProductById?id=%s", productId), nil)
 	// req, err := http.NewRequest("GET", "https://yuanlitui.com/api/product/getProductById?id=ar55", nil)
