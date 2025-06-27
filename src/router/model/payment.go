@@ -63,3 +63,25 @@ type Payment struct {
 func (t *Payment) TableName() string {
 	return "payments"
 }
+
+// 格式化输出支付状态描述
+func PaymentStatusDescriptionFormat(status int32) string {
+	switch status {
+	case PaymentStatusCreate:
+		return "已创建"
+	case PaymentStatusToPay:
+		return "待支付"
+	case PaymentStatusPayed:
+		return "已支付"
+	case PaymentStatusTimeOut:
+		return "支付超时"
+	case PaymentStatusPayFail:
+		return "支付失败"
+	case PaymentStatusPayCancel:
+		return "取消支付"
+	case PaymentStatusPaying:
+		return "正在支付"
+	default:
+		return ""
+	}
+}

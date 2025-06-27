@@ -81,10 +81,10 @@ func InitRouter() {
 			}
 
 			// 订单操作
-			// order := admin.Group("/order")
-			// {
-			//  order.GET("/list", GetOrderList)
-			// }
+			order := admin.Group("/order")
+			{
+				order.GET("/list", AdminGetUserOrderList)
+			}
 		}
 	}
 

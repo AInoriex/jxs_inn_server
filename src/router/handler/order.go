@@ -231,6 +231,13 @@ func AdminGetUserOrderList(c *gin.Context) {
 
 	var resList []*model.AdminGetUserOrderListResp
 	for _, order := range orders {
+		// 查询user
+		user, err := dao.GetUserById(order.UserId)
+		if err != nil {
+			log.Error("AdminGetUserOrderList fail", zap.Error(err))
+			continue
+		}
+
 		// 查询payment
 		payment, err := dao.GetPaymentsById(order.PaymentId)
 		if err != nil {
@@ -265,6 +272,9 @@ func AdminGetUserOrderList(c *gin.Context) {
 		// 封装resList
 		resList = append(resList, &model.AdminGetUserOrderListResp{
 			OrderId:            order.Id,
+			UserId:             user.Id,
+			UserName:           user.Name,
+			UserEmail:          user.Email,
 			OrderItems:         orderItemList,
 			TotalAmount:        order.TotalAmount,
 			Discount:           order.Discount,

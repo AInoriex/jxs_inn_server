@@ -168,24 +168,8 @@ func GetUserPurchaseHistory(c *gin.Context) {
 			FinalAmount:    order.FinalAmount,
 			Quantity:       purchaseHistory.Quantity,
 			PurchaseStatus: order.PaymentStatus,
+			PurchaseStatusDesc: model.PaymentStatusDescriptionFormat(order.PaymentStatus),
 			PurchaseDate:   purchaseHistory.PurchasedAt,
-		}
-		// 订单状态映射
-		switch order.PaymentStatus {
-		case 0:
-			p.PurchaseStatusDesc = "已创建"
-		case 1:
-			p.PurchaseStatusDesc = "待支付"
-		case 2:
-			p.PurchaseStatusDesc = "已支付"
-		case 3:
-			p.PurchaseStatusDesc = "支付超时"
-		case 4:
-			p.PurchaseStatusDesc = "支付失败"
-		case 5:
-			p.PurchaseStatusDesc = "取消支付"
-		default:
-			p.PurchaseStatusDesc = ""
 		}
 		resList = append(resList, p)
 	}

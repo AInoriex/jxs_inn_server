@@ -93,7 +93,8 @@ func (t *OrderItem) TableName() string {
 	return "order_items"
 }
 
-// 创建订单请求参数
+// @Title	创建订单请求参数
+// @Author  AInoriex  (2025/05/09 19:51)
 type CreateOrderReq struct {
 	ItemList []struct { // 商品列表
 		ProductId string `json:"product_id"`
@@ -101,4 +102,29 @@ type CreateOrderReq struct {
 	} `json:"item_list"`
 	PaymentMethod      string `json:"payment_method"`       // 支付方式: qrcode, bank, point
 	PaymentGatewayType int32  `json:"payment_gateway_type"` // 支付网关: ylt, alipay, wechat
+}
+
+// @Title	管理后台获取全部订单信息
+// @Author  AInoriex  (2025/06/27 14:21)
+type AdminGetUserOrderListResp struct {
+	OrderId            string                         `json:"id"`
+	UserId             string                         `json:"user_id"`
+	UserName           string                         `json:"user_name"`
+	UserEmail          string                         `json:"user_email"`
+	OrderItems         []*AdminGetUserOrderOrderItems `json:"items"`
+	TotalAmount        float64                        `json:"total_amount"`
+	Discount           float64                        `json:"discount"`
+	FinalAmount        float64                        `json:"final_amount"`
+	PurchaseStatus     int32                          `json:"-"`
+	PurchaseStatusDesc string                         `json:"purchase_status_desc"`
+	OrderCreateAt      time.Time                      `json:"create_at"`
+	PaymentPurchaseAt  time.Time                      `json:"purchased_at"`
+}
+
+type AdminGetUserOrderOrderItems struct {
+	OrderItemId string  `json:"item_id"`
+	ProductId   string  `json:"product_id"`
+	ProductName string  `json:"product_name"`
+	Quantity    int32   `json:"quantity"`
+	Price       float64 `json:"price"`
 }

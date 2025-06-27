@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// @Title   获取订单记录
+// @Title   获取指定单条订单记录
 // @Description 根据订单ID获取订单记录
 // @Author  AInoriex  (2025/05/16 16:43)
 func GetOrderByOrderId(orderId string) (res *model.Order, err error) {
@@ -34,7 +34,7 @@ func GetOrdersByUserId(userId string) (res []*model.Order, err error) {
 	return
 }
 
-// @Title   获取用户单个订单订单记录
+// @Title   获取用户单个订单记录
 // @Description 用户id，订单id
 // @Author  AInoriex  (2025/05/06 14:11)
 func GetOrderByUserIdAndProductId(userId string, orderId string) (res *model.Order, err error) {
@@ -47,13 +47,26 @@ func GetOrderByUserIdAndProductId(userId string, orderId string) (res *model.Ord
 	return
 }
 
-// @Title	获取订单记录
+// @Title	获取指定单个订单记录
 // @Description 根据支付ID获取订单记录
 // @Author	AInoriex (2025/05/15 20:00)
 func GetOrderByPaymentId(paymentId string) (res *model.Order, err error) {
 	err = db.MysqlCon.Where("payment_id =?", paymentId).First(&res).Error
 	if err != nil {
 		log.Error("GetOrderByPaymentId fail", zap.Error(err))
+		return nil, err
+	}
+
+	return
+}
+
+// @Title 获取全部订单记录
+// @Description 管理后台获取全部订单信息
+// @Author AInoriex (2025/05/16 16:43)
+func GetAllOrders(pageNum int, pageSize int) (res []*model.Order, err error) {
+	err = db.MysqlCon.Find(&res).Error
+	if err != nil {
+		log.Error("GetAllOrders fail", zap.Error(err))
 		return nil, err
 	}
 
