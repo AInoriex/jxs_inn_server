@@ -104,6 +104,7 @@ func CreateUserOrder(c *gin.Context) {
 		Id:        orderItemId,
 		ProductId: item.ProductId,
 		Quantity:  item.Quantity,
+		Price:     product.Price,
 	}
 	if _, err = dao.CreateOrderItem(OrderItem); err != nil {
 		log.Error("CreateOrder 创建订单商品失败", zap.Error(err))
@@ -208,4 +209,75 @@ func GetUserOrderStatus(c *gin.Context) {
 		// TODO: 补偿修复用户购买历史记录?
 		Success(c, dataMap)
 	}
+}
+
+// @Title		查询用户订单信息
+// @Description	管理后台查询用户订单信息
+// @Produce		json
+// @Router		/v1/eshop_api/admin/order/list [get]
+// @Response	query Order ID,Product,Quantity,Original Price,Discount,Final Amount,Status,Date
+func AdminGetUserOrderList(c *gin.Context) {
+	var err error
+	dataMap := make(map[string]interface{})
+
+	// 获取订单信息
+	// TODO 分页查询
+	orders, err := dao.GetAllOrders(0, 0)
+	if err != nil {
+		log.Error("AdminGetUserOrderList fail", zap.Error(err))
+		Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
+		return
+	}
+
+	var resList []*model.AdminGetUserOrderListResp
+	for _, order := range orders {
+		// 查询payment
+		payment, err := dao.GetPaymentsById(order.PaymentId)
+		if err != nil {
+			log.Error("AdminGetUserOrderList fail", zap.Error(err))
+			continue
+		}
+
+		// 查询order_item
+		orderItems, err := dao.GetOrderItemsById(order.ItemId)
+		if err != nil {
+			log.Error("AdminGetUserOrderList fail", zap.Error(err))
+			continue
+		}
+		// 封装order_item
+		var orderItemList []*model.AdminGetUserOrderOrderItems
+		for _, item := range orderItems {
+			// 查询product
+			product, err := dao.GetProductById(item.ProductId)
+			if err != nil {
+				log.Error("AdminGetUserOrderList fail", zap.Error(err))
+				continue
+			}
+			orderItemList = append(orderItemList, &model.AdminGetUserOrderOrderItems{
+				OrderItemId: item.Id,
+				ProductId:   item.ProductId,
+				ProductName: product.Title,
+				Quantity:    item.Quantity,
+				Price:       item.Price,
+			})
+		}
+
+		// 封装resList
+		resList = append(resList, &model.AdminGetUserOrderListResp{
+			OrderId:            order.Id,
+			OrderItems:         orderItemList,
+			TotalAmount:        order.TotalAmount,
+			Discount:           order.Discount,
+			FinalAmount:        order.FinalAmount,
+			PurchaseStatus:     order.PaymentStatus,
+			PurchaseStatusDesc: model.PaymentStatusDescriptionFormat(order.PaymentStatus),
+			OrderCreateAt:      order.CreatedAt,
+			PaymentPurchaseAt:  payment.PurchasedAt,
+		})
+	}
+
+	// 返回数据
+	dataMap["result"] = resList
+	dataMap["len"] = len(resList)
+	Success(c, dataMap)
 }
