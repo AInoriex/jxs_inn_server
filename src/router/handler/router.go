@@ -65,11 +65,11 @@ func InitRouter() {
 		admin.Use(middleware.ParseAuthorization(), middleware.RequireRole(model.UserRoleAdmin))
 		{
 			// 用户操作
-			// user := admin.Group("/user")
-			// {
-			// 	user.GET("/list", AdminGetUserList)
-			// 	user.PUT("/ban/:id", AdminBanUser)
-			// }
+			user := admin.Group("/user")
+			{
+				user.GET("/list", AdminGetUserList)
+				user.PUT("/ban/:id", AdminBanUser)
+			}
 
 			// 商品操作
 			product := admin.Group("/product")

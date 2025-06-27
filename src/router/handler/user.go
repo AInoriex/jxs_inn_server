@@ -6,6 +6,7 @@ import (
 	"eshop_server/src/router/model"
 	uerrors "eshop_server/src/utils/errors"
 	"eshop_server/src/utils/log"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -121,59 +122,81 @@ func ResetPassword(c *gin.Context) {
 	Success(c, dataMap)
 }
 
-// @Title        获取用户购买历史
-// @Description  通过token认证身份并获取用户购买历史
-// @Produce      json
-// @Router       /v1/eshop_api/user/purchase_history [get]
-func GetUserPurchaseHistory(c *gin.Context) {
+// @Title 获取用户列表
+// @Desc 管理员获取用户列表
+// @Produce json
+// @Router /v1/eshop_api/admin/user/list [get]
+func AdminGetUserList(c *gin.Context) {
 	var err error
+	req := GetGinBody(c)
 	dataMap := make(map[string]interface{})
+	log.Infof("AdminGetUserList 请求参数, req:%s", string(req))
 
-	// JWT用户查询&鉴权
-	user, err := isValidUser(c)
+	// 获取商品信息
+	// TODO 分页查询
+	resList, err := dao.GetAllUsers(1, 50, "created_at", "desc")
 	if err != nil {
-		log.Errorf("GetUserPurchaseHistory 非法用户请求, error:%v", err)
-		FailWithAuthorization(c)
-		return
-	}
-
-	// 查询用户购买历史
-	purchaseHistoryList, err := dao.GetPurchaseHistorysByUserId(user.Id)
-	if err != nil {
-		log.Errorf("GetUserPurchaseHistory 查询用户购买历史失败, error:%v", err)
+		log.Errorf("AdminGetUserList GetAllUsers fail, err:%v", err)
 		Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
 		return
 	}
 
-	// 查询订单信息
-	var resList []*model.GetUserPurchaseHistoryResp
-	for _, purchaseHistory := range purchaseHistoryList {
-		order, err := dao.GetOrderByOrderId(purchaseHistory.OrderId)
-		if err != nil {
-			log.Errorf("GetUserPurchaseHistory 查询订单信息失败, error:%v", err)
-			continue
-		}
-		// 查询商品信息
-		product, err := dao.GetProductById(purchaseHistory.ProductId)
-		if err != nil {
-			log.Errorf("GetUserPurchaseHistory 查询商品信息失败, error:%v", err)
-			continue
-		}
+	// 返回数据
+	dataMap["result"] = resList
+	dataMap["len"] = len(resList)
+	Success(c, dataMap)
+}
 
-		// 转换为前端响应格式
-		p := &model.GetUserPurchaseHistoryResp{
-			Id:             purchaseHistory.Id,
-			OrderId:        purchaseHistory.OrderId,
-			ProductName:    product.Title,
-			FinalAmount:    order.FinalAmount,
-			Quantity:       purchaseHistory.Quantity,
-			PurchaseStatus: order.PaymentStatus,
-			PurchaseStatusDesc: model.PaymentStatusDescriptionFormat(order.PaymentStatus),
-			PurchaseDate:   purchaseHistory.PurchasedAt,
-		}
-		resList = append(resList, p)
+// @Title 拉黑用户
+// @Description 管理后台拉黑用户
+// @Produce json
+// @Router /v1/eshop_api/admin/user/ban/:id [put]
+func AdminBanUser(c *gin.Context) {
+	var err error
+	req := GetGinBody(c)
+	dataMap := make(map[string]interface{})
+	log.Infof("AdminBanUser 请求参数, req:%s", string(req))
+
+	// 获取用户ID
+	userId := c.Param("id")
+	if userId == "" {
+		log.Errorf("AdminBanUser 用户ID不能为空")
+		Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":用户ID无效")
+		return
 	}
 
-	dataMap["result"] = resList
+	// 校验用户是否存在
+	user, err := dao.GetUserById(userId)
+	if err != nil {
+		log.Errorf("AdminBanUser GetUserById fail, err:%v", err)
+		Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail+":用户不存在")
+		return
+	}
+
+	// 校验用户是否已被拉黑
+	if user.Status == model.UserStatusBanned {
+		log.Warnf("AdminBanUser 用户已被拉黑, user_id:%s", userId)
+		Success(c, dataMap)
+		return
+	}
+
+	// HARDNEED 管理员权限用户不可拉黑
+	for _, role := range user.Roles {
+		if role == model.UserRoleAdmin {
+			log.Errorf("AdminBanUser 管理员用户不可拉黑, user_id:%s", userId)
+			Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail+":管理员用户不可拉黑")
+			return
+		}
+	}
+
+	// 拉黑用户
+	user.Status = model.UserStatusBanned
+	user.BannedAt = time.Now()
+	if _, err = dao.UpdateUserByField(user, []string{"status", "banned_at"}); err != nil {
+		log.Errorf("AdminBanUser 拉黑用户失败, user_id:%s, error:%v", userId, err)
+		Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail)
+		return
+	}
+
 	Success(c, dataMap)
 }

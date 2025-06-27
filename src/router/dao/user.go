@@ -60,6 +60,20 @@ func GetValidUserByEmail(email string) (res *model.User, err error) {
 	return res, nil
 }
 
+// @Title   获取所有用户信息
+// @Description pageNum: 分页页码, pageSize: 分页大小, orderBy: 排序字段, orderType: 排序类型(ASC/DESC)
+// @Author  AInoriex  (2025/06/25 17:50)
+func GetAllUsers(pageNum, pageSize int, orderBy string, orderType string) (res []*model.User, err error) {
+	err = db.MysqlCon.Find(&res).Order(orderBy + " " + orderType).
+		Limit(pageSize).Offset((pageNum - 1) * pageSize).Error
+	if err != nil {
+		log.Error("GetAllUsers fail", zap.Error(err))
+		return res, err
+	}
+
+	return res, nil
+}
+
 // @Title   创建新用户
 // @Description *model.User
 // @Author  AInoriex  (2024/07/22 18:05)
