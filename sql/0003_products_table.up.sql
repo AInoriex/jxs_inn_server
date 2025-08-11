@@ -23,3 +23,8 @@ CREATE TABLE `products` (
   KEY `idx_price` (`price`),
   KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='商品表';
+
+-- @Author AInoriex
+-- @Desc 新增字段source_type, 用于记录商品来源类别
+ALTER TABLE `eshop`.`products` 
+ADD COLUMN `source_type` int(128) NULL DEFAULT 0 COMMENT '来源类别' AFTER `created_at`;

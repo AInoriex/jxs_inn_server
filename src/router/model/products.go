@@ -5,10 +5,14 @@ import (
 )
 
 const (
-	ProductStatusOff int32 = 0 //下架
-	ProductStatusOn  int32 = 1 //上架
+	ProductStatusOff   int32 = 0 //下架
+	ProductStatusOn    int32 = 1 //上架
+	ProductStatusAudit int32 = 2 //待审核
 
-	ProductImageUrlDefault string = "" //默认商品图片链接
+	ProductSourceTypeDefault int32 = 0 // 默认
+	ProductSourceTypeYlt     int32 = 1 // ylt
+
+	ProductImageUrlDefault string = "https://ucarecdn.com/28285bd2-bfa6-46aa-af19-24e00ea396a9/-/preview/1000x562/" //默认商品图片链接
 )
 
 /*
@@ -29,6 +33,7 @@ CREATE TABLE `products` (
 	`external_id` varchar(64) DEFAULT NULL COMMENT '外部商品ID',
 	`external_link` varchar(64) DEFAULT NULL COMMENT '外部商品链接',
 	`created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+	`source_type` int(128) NULL DEFAULT 0 COMMENT '来源类别',
 	PRIMARY KEY (`id`),
 	KEY `idx_title` (`title`),
 	KEY `idx_price` (`price`),
@@ -44,6 +49,7 @@ type Products struct {
 	Status       int32     `json:"status" gorm:"column:status;default:1;comment:'商品状态(0下架, 1上架)'"`
 	ImageUrl     string    `json:"image_url" gorm:"column:image_url;default:NULL;comment:'商品图片URL'"`
 	Sales        int64     `json:"sales" gorm:"column:sales;default:0;comment:'商品销量'"`
+	SourceType   int32     `json:"source_type" gorm:"column:source_type;default:0;comment:'来源类别'"`
 	ExternalId   string    `json:"external_id" gorm:"column:external_id;default:NULL;comment:'外部商品ID'"`
 	ExternalLink string    `json:"external_link" gorm:"column:external_link;default:NULL;comment:'外部商品链接'"`
 	CreateAt     time.Time `json:"created_at" gorm:"column:created_at;default:CURRENT_TIMESTAMP;comment:'创建时间'"`
@@ -53,38 +59,25 @@ func (t *Products) TableName() string {
 	return "products"
 }
 
-// @Title   创建商品请求参数
-// @Author  AInoriex  (2025/06/24 16:08)
-type CreateProductReq struct {
-	Id           string  `json:"id" binding:"required"`
-	Title        string  `json:"title" binding:"required"`
-	Description  string  `json:"description" binding:"required"`
-	Price        float64 `json:"price" binding:"required"`
-	ImageUrl     string  `json:"image_url"`
-	Sales        int64   `json:"sales"`
-	ExternalId   string  `json:"external_id"`
-	ExternalLink string  `json:"external_link"`
-}
-
 // @Title	用户查看商品列表格式化
 // @Author  AInoriex  (2025/06/26 16:30)
 type ProductUserView struct {
-	Id           string  `json:"id"`
-	Title        string  `json:"title"`
-	Description  string  `json:"description"`
-	Price        float64 `json:"price"`
-	ImageUrl     string  `json:"image_url"`
-	Sales        int64   `json:"sales"`
+	Id          string  `json:"id"`
+	Title       string  `json:"title"`
+	Description string  `json:"description"`
+	Price       float64 `json:"price"`
+	ImageUrl    string  `json:"image_url"`
+	Sales       int64   `json:"sales"`
 }
 
 func (m *Products) UserViewFormat() (resList *ProductUserView) {
 	resList = &ProductUserView{
-		Id:           m.Id,
-		Title:        m.Title,
-		Description:  m.Description,
-		Price:        m.Price,
-		ImageUrl:     m.ImageUrl,
-		Sales:        m.Sales,
+		Id:          m.Id,
+		Title:       m.Title,
+		Description: m.Description,
+		Price:       m.Price,
+		ImageUrl:    m.ImageUrl,
+		Sales:       m.Sales,
 	}
 	return
 }

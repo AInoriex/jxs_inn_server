@@ -76,7 +76,7 @@ func AdminCreateProduct(c *gin.Context) {
 	log.Infof("CreateProduct 请求参数, req:%s", string(req))
 
 	// JSON解析
-	var reqbody model.CreateProductReq
+	var reqbody model.Products
 	err = json.Unmarshal(req, &reqbody)
 	if err != nil {
 		log.Errorf("CreateProduct json解析失败, error:%v", err)
@@ -100,20 +100,9 @@ func AdminCreateProduct(c *gin.Context) {
 	}
 
 	// 创建上架商品
-	m := model.Products{
-		Id:           reqbody.Id,
-		Title:        reqbody.Title,
-		Description:  reqbody.Description,
-		Price:        reqbody.Price,
-		Status:       model.ProductStatusOn, // 默认上架,
-		ImageUrl:     reqbody.ImageUrl,
-		Sales:        reqbody.Sales,
-		ExternalId:   reqbody.ExternalId,
-		ExternalLink: reqbody.ExternalLink,
-	}
-	res, err := dao.CreateProduct(&m)
+	res, err := dao.CreateProduct(&reqbody)
 	if err != nil {
-		log.Errorf("CreateProduct 创建商品失败, m:%+v, err:%v", m, err)
+		log.Errorf("CreateProduct 创建商品失败, reqbody:%+v, err:%v", reqbody, err)
 		Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail)
 		return
 	}
