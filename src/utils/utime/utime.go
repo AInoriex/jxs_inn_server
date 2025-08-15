@@ -3,6 +3,7 @@ package utime
 import (
 	"fmt"
 	"math"
+	"math/rand"
 	"strconv"
 	"time"
 )
@@ -661,4 +662,12 @@ func GetLatelyMarch() []string {
 	}
 	m = append(m, t.Format("200601"))
 	return m
+}
+
+// 随机睡眠 随机时间 单位秒
+func RandomSleep(least int, rand_range int) {
+	rand.New(rand.NewSource(GetNowUnixNano()))
+	// 生成least到least+range之间的随机数
+	n := rand.Intn(rand_range) + least
+	time.Sleep(time.Duration(n) * time.Second)
 }

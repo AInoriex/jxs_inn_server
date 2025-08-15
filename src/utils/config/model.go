@@ -10,10 +10,12 @@ package config
 var ConfigMap = map[string]interface{}{
 	"common_config": CommonConfig,
 	"db_config":     DbConfig,
+	"stream_config": StreamConfig,
 }
 
 var CommonConfig = new(CommonConf)
 var DbConfig = new(DbConf)
+var StreamConfig = new(StreamConf)
 
 type Mysql struct {
 	Host   string `mapstructure:"host"`
@@ -56,9 +58,16 @@ type StreamServerConf struct {
 // smtp配置
 type SmtpConfig struct {
 	Host     string `mapstructure:"host"`
-	Port     int  `mapstructure:"port"`
+	Port     int    `mapstructure:"port"`
 	Username string `mapstructure:"username"`
 	Password string `mapstructure:"password"`
+}
+
+// 飞书告警配置
+type LarkAlarm struct {
+	DebugBotWebhook string `mapstructure:"debug_bot_webhook"`
+	InfoBotWebhook string `mapstructure:"info_bot_webhook"`
+	ErrorBotWebhook string `mapstructure:"error_bot_webhook"`
 }
 
 // 通用配置
@@ -74,10 +83,17 @@ type CommonConf struct {
 	JwtSecret    string            `mapstructure:"jwt_secret"`    // jwt密钥
 	YltAccount   map[string]string `mapstructure:"ylt_account"`   // ylt账号
 	Smtp         SmtpConfig        `mapstructure:"smtp"`          // smtp配置
+	LarkAlarm    LarkAlarm         `mapstructure:"lark_alarm"`    // 飞书告警配置
+
 }
 
 // 数据库配置
 type DbConf struct {
 	Mysql Mysql `mapstructure:"mysql"`
 	Redis Redis `mapstructure:"redis"`
+}
+
+// 流媒体配置
+type StreamConf struct {
+	Host string `mapstructure:"host"` // 流媒体服务地址
 }
