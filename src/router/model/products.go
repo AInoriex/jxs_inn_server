@@ -18,9 +18,6 @@ const (
 /*
 -- @Author AInoriex
 -- @Desc 用于记录商品基本信息
--- @TODO 补充特定商品的属性信息(音声格式, 音声时长……)
--- @Chge 2025年5月6日11点06分 id int(11) -> varchar(16)
--- @Chge 2025年5月9日17点46分 新增字段external_id, external_link
 CREATE TABLE `products` (
 
 	`id` varchar(16) NOT NULL COMMENT '商品唯一标识',
@@ -57,6 +54,13 @@ type Products struct {
 
 func (t *Products) TableName() string {
 	return "products"
+}
+
+// @Title	创建商品请求体
+// @Author  AInoriex (2025/08/11 14:20)
+type CreateProductReq struct {
+	Products
+	PP []ProductsPlayer `json:"player_list"`
 }
 
 // @Title	用户查看商品列表格式化

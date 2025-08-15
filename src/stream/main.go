@@ -5,7 +5,7 @@ import (
 	"eshop_server/src/stream/model"
 	"eshop_server/src/utils/config"
 
-	// "eshop_server/src/utils/db"
+	"eshop_server/src/utils/db"
 	"eshop_server/src/utils/log"
 	"fmt"
 )
@@ -25,8 +25,8 @@ func main() {
 	log.Info("初始化日志成功")
 
 	// TODO 初始化数据库
-	// db.InitMysqlAll(config.DbConfig.Mysql.Host, config.DbConfig.Mysql.Db, config.DbConfig.Mysql.MaxCon, db.Con_Main, config.CommonConfig.OpenDbLog)
-	// log.Info("初始化Mysql数据库成功")
+	db.InitMysqlAll(config.DbConfig.Mysql.Host, config.DbConfig.Mysql.Db, config.DbConfig.Mysql.MaxCon, db.Con_Main, config.CommonConfig.OpenDbLog)
+	log.Info("初始化Mysql数据库成功")
 
 	// 初始化音频路径
 	if err = model.InitStreamingPaths(); err != nil {

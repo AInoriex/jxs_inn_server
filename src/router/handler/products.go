@@ -2,11 +2,18 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"eshop_server/src/router/dao"
 	"eshop_server/src/router/model"
+	"eshop_server/src/utils/alarm"
+	"eshop_server/src/utils/config"
+	"eshop_server/src/utils/utime"
 	uerrors "eshop_server/src/utils/errors"
 	"eshop_server/src/utils/log"
+	"fmt"
+
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // @Title		 获取商品列表
@@ -51,16 +58,36 @@ func AdminGetProductList(c *gin.Context) {
 
 	// 获取商品信息
 	// TODO 分页查询
-	resList, err := dao.GetAllProducts(1, 50, "created_at", "desc")
+	var resultProductList []model.CreateProductReq
+	productList, err := dao.GetAllProducts(1, 50, "created_at", "desc")
 	if err != nil {
 		log.Errorf("AdminGetProductList GetAllProducts fail, err:%v", err)
 		Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
 		return
 	}
 
+	// 对于每个商品获取商品播放列表
+	for _, v := range productList {
+		var tmp model.CreateProductReq = model.CreateProductReq{
+			Products: *v,
+		}
+		// 获取播放信息
+		tmp.PP = make([]model.ProductsPlayer, 0)
+		playerList, err := dao.GetProductsPlayerByProductId(v.Id)
+		if err != nil {
+			log.Errorf("AdminGetProductList GetProductsPlayerByProductId fail, product_id:%s, err:%v", v.Id, err)
+			Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
+			return
+		}
+		for _, p := range playerList {
+			tmp.PP = append(tmp.PP, *p)
+		}
+		resultProductList = append(resultProductList, tmp)
+	}
+
 	// 返回数据
-	dataMap["result"] = resList
-	dataMap["len"] = len(resList)
+	dataMap["result"] = resultProductList
+	dataMap["len"] = len(resultProductList)
 	Success(c, dataMap)
 }
 
@@ -76,7 +103,7 @@ func AdminCreateProduct(c *gin.Context) {
 	log.Infof("CreateProduct 请求参数, req:%s", string(req))
 
 	// JSON解析
-	var reqbody model.Products
+	var reqbody *model.CreateProductReq
 	err = json.Unmarshal(req, &reqbody)
 	if err != nil {
 		log.Errorf("CreateProduct json解析失败, error:%v", err)
@@ -90,24 +117,46 @@ func AdminCreateProduct(c *gin.Context) {
 		Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":基本参数有误")
 		return
 	}
-	if reqbody.ExternalId == "" || reqbody.ExternalLink == "" { // TODO 使用默认ID
+	if reqbody.ExternalId == "" || reqbody.ExternalLink == "" {
 		log.Errorf("CreateProduct 商品第三方参数无效, reqbody:%+v", reqbody)
 		Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":第三方参数有误")
 		return
 	}
-	if reqbody.ImageUrl == "" { // TODO 使用默认图片
+	if reqbody.ImageUrl == "" {
 		reqbody.ImageUrl = model.ProductImageUrlDefault
 	}
 
 	// 创建上架商品
-	res, err := dao.CreateProduct(&reqbody)
+	res, err := dao.CreateProduct(&reqbody.Products)
 	if err != nil {
 		log.Errorf("CreateProduct 创建商品失败, reqbody:%+v, err:%v", reqbody, err)
 		Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail)
 		return
 	}
 
-	// TODO 飞书通知
+	// 创建商品资源映射
+	for _, v := range reqbody.PP {
+		if v.ProductId == "" {
+			v.ProductId = res.Id
+		}
+		// 查找是否存在映射，不存在则创建
+		if _, err = dao.GetProductsPlayerByProductId(v.ProductId); err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+			_, createErr := dao.CreateProductsPlayer(&v)
+			if createErr != nil {
+				log.Errorf("CreateProduct 创建商品资源映射失败, reqbody:%+v, err:%v", reqbody, createErr)
+				Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail)
+				return
+			}
+		}
+	}
+
+	// 飞书告警
+	if err = alarm.PostFeiShu(
+		"info", config.CommonConfig.LarkAlarm.InfoBotWebhook, 
+		fmt.Sprintf("[JXS管理后台] 新商品上架成功 \n\t 环境:%s \n\t商品信息:%+v \n\t通知时间:%s", config.CommonConfig.Env, res, utime.TimeToStr(utime.GetNow())),
+	); err != nil {
+		log.Errorf("CreateProduct 飞书通知失败, reqbody:%+v, err:%v", reqbody, err)
+	}
 
 	// 返回数据
 	dataMap["result"] = res
