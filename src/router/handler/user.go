@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"eshop_server/src/common/api"
 	"eshop_server/src/router/dao"
 	"eshop_server/src/router/model"
 	uerrors "eshop_server/src/utils/errors"
@@ -23,13 +24,13 @@ func GetUserInfo(c *gin.Context) {
 	user, err := isValidUser(c)
 	if err != nil {
 		log.Errorf("GetUserInfo 非法用户请求, error:%v", err)
-		FailWithAuthorization(c)
+		api.FailWithAuthorization(c)
 		return
 	}
 	dataMap["name"] = user.Name
 	dataMap["email"] = user.Email
 	dataMap["avatar_url"] = user.AvatarUrl
-	Success(c, dataMap)
+	api.Success(c, dataMap)
 }
 
 // @Title        更新用户信息
@@ -38,14 +39,14 @@ func GetUserInfo(c *gin.Context) {
 // @Router       /v1/eshop_api/user/update_info [post]
 func UpdateUserInfo(c *gin.Context) {
 	var err error
-	req := GetGinBody(c)
+	req := api.GetGinBody(c)
 	dataMap := make(map[string]interface{})
 
 	// JWT用户查询&鉴权
 	user, err := isValidUser(c)
 	if err != nil {
 		log.Errorf("UpdateUserInfo 非法用户请求, error:%v", err)
-		FailWithAuthorization(c)
+		api.FailWithAuthorization(c)
 		return
 	}
 
@@ -54,7 +55,7 @@ func UpdateUserInfo(c *gin.Context) {
 	err = json.Unmarshal(req, &reqbody)
 	if err != nil {
 		log.Errorf("UpdateUserInfo json解析失败, error:%v", err)
-		Fail(c, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Code, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Detail)
+		api.Fail(c, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Code, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Detail)
 		return
 	}
 	if reqbody.Name != "" {
@@ -71,11 +72,11 @@ func UpdateUserInfo(c *gin.Context) {
 	// 更新用户信息
 	if _, err = dao.UpdateUserByField(user, []string{"name", "avatar_url"}); err != nil {
 		log.Errorf("UpdateUserInfo 更新用户信息失败, error:%v", err)
-		Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail)
+		api.Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail)
 		return
 	}
 
-	Success(c, dataMap)
+	api.Success(c, dataMap)
 }
 
 // @Title        重置用户密码
@@ -84,14 +85,14 @@ func UpdateUserInfo(c *gin.Context) {
 // @Router       /v1/eshop_api/user/reset_password [post]
 func ResetPassword(c *gin.Context) {
 	var err error
-	req := GetGinBody(c)
+	req := api.GetGinBody(c)
 	dataMap := make(map[string]interface{})
 
 	// JWT用户查询&鉴权
 	user, err := isValidUser(c)
 	if err != nil {
 		log.Errorf("ResetPassword 非法用户请求, error:%v", err)
-		FailWithAuthorization(c)
+		api.FailWithAuthorization(c)
 		return
 	}
 
@@ -100,14 +101,14 @@ func ResetPassword(c *gin.Context) {
 	err = json.Unmarshal(req, &reqbody)
 	if err != nil {
 		log.Errorf("ResetPassword json解析失败, error:%v", err)
-		Fail(c, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Code, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Detail)
+		api.Fail(c, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Code, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Detail)
 		return
 	}
 
 	// 密码校验
 	if reqbody.OldPassword != user.Password {
 		log.Errorf("ResetPassword 旧密码输入有误, user.Password:%v, req.Password:%v", user.Password, reqbody.OldPassword)
-		Fail(c, uerrors.Parse(uerrors.ErrorPasswordNotSame.Error()).Code, uerrors.Parse(uerrors.ErrorPasswordNotSame.Error()).Detail)
+		api.Fail(c, uerrors.Parse(uerrors.ErrorPasswordNotSame.Error()).Code, uerrors.Parse(uerrors.ErrorPasswordNotSame.Error()).Detail)
 		return
 	}
 
@@ -115,11 +116,11 @@ func ResetPassword(c *gin.Context) {
 	user.Password = reqbody.NewPassword
 	if _, err = dao.UpdateUserByField(user, []string{"password"}); err != nil {
 		log.Errorf("ResetPassword 更新用户密码失败, error:%v", err)
-		Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail)
+		api.Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail)
 		return
 	}
 
-	Success(c, dataMap)
+	api.Success(c, dataMap)
 }
 
 // @Title 获取用户列表
@@ -128,7 +129,7 @@ func ResetPassword(c *gin.Context) {
 // @Router /v1/eshop_api/admin/user/list [get]
 func AdminGetUserList(c *gin.Context) {
 	var err error
-	req := GetGinBody(c)
+	req := api.GetGinBody(c)
 	dataMap := make(map[string]interface{})
 	log.Infof("AdminGetUserList 请求参数, req:%s", string(req))
 
@@ -137,14 +138,14 @@ func AdminGetUserList(c *gin.Context) {
 	resList, err := dao.GetAllUsers(1, 50, "created_at", "desc")
 	if err != nil {
 		log.Errorf("AdminGetUserList GetAllUsers fail, err:%v", err)
-		Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
+		api.Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
 		return
 	}
 
 	// 返回数据
 	dataMap["result"] = resList
 	dataMap["len"] = len(resList)
-	Success(c, dataMap)
+	api.Success(c, dataMap)
 }
 
 // @Title 拉黑用户
@@ -153,7 +154,7 @@ func AdminGetUserList(c *gin.Context) {
 // @Router /v1/eshop_api/admin/user/ban/:id [put]
 func AdminBanUser(c *gin.Context) {
 	var err error
-	req := GetGinBody(c)
+	req := api.GetGinBody(c)
 	dataMap := make(map[string]interface{})
 	log.Infof("AdminBanUser 请求参数, req:%s", string(req))
 
@@ -161,7 +162,7 @@ func AdminBanUser(c *gin.Context) {
 	userId := c.Param("id")
 	if userId == "" {
 		log.Errorf("AdminBanUser 用户ID不能为空")
-		Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":用户ID无效")
+		api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":用户ID无效")
 		return
 	}
 
@@ -169,14 +170,14 @@ func AdminBanUser(c *gin.Context) {
 	user, err := dao.GetUserById(userId)
 	if err != nil {
 		log.Errorf("AdminBanUser GetUserById fail, err:%v", err)
-		Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail+":用户不存在")
+		api.Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail+":用户不存在")
 		return
 	}
 
 	// 校验用户是否已被拉黑
 	if user.Status == model.UserStatusBanned {
 		log.Warnf("AdminBanUser 用户已被拉黑, user_id:%s", userId)
-		Success(c, dataMap)
+		api.Success(c, dataMap)
 		return
 	}
 
@@ -184,7 +185,7 @@ func AdminBanUser(c *gin.Context) {
 	for _, role := range user.Roles {
 		if role == model.UserRoleAdmin {
 			log.Errorf("AdminBanUser 管理员用户不可拉黑, user_id:%s", userId)
-			Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail+":管理员用户不可拉黑")
+			api.Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail+":管理员用户不可拉黑")
 			return
 		}
 	}
@@ -194,9 +195,9 @@ func AdminBanUser(c *gin.Context) {
 	user.BannedAt = time.Now()
 	if _, err = dao.UpdateUserByField(user, []string{"status", "banned_at"}); err != nil {
 		log.Errorf("AdminBanUser 拉黑用户失败, user_id:%s, error:%v", userId, err)
-		Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail)
+		api.Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail)
 		return
 	}
 
-	Success(c, dataMap)
+	api.Success(c, dataMap)
 }

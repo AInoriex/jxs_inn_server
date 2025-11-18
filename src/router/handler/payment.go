@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"eshop_server/src/common/api"
 	"eshop_server/src/router/dao"
 	"eshop_server/src/router/model"
 	uerrors "eshop_server/src/utils/errors"
@@ -101,7 +102,7 @@ func GetUserPurchaseHistory(c *gin.Context) {
 	user, err := isValidUser(c)
 	if err != nil {
 		log.Errorf("GetUserPurchaseHistory 非法用户请求, error:%v", err)
-		FailWithAuthorization(c)
+		api.FailWithAuthorization(c)
 		return
 	}
 
@@ -109,7 +110,7 @@ func GetUserPurchaseHistory(c *gin.Context) {
 	purchaseHistoryList, err := dao.GetPurchaseHistorysByUserId(user.Id)
 	if err != nil {
 		log.Errorf("GetUserPurchaseHistory 查询用户购买历史失败, error:%v", err)
-		Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
+		api.Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
 		return
 	}
 
@@ -143,5 +144,5 @@ func GetUserPurchaseHistory(c *gin.Context) {
 	}
 
 	dataMap["result"] = resList
-	Success(c, dataMap)
+	api.Success(c, dataMap)
 }

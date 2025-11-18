@@ -23,10 +23,24 @@ func GetProductsPlayerById(id string) (res *model.ProductsPlayer, err error) {
 // @Title   获取数据记录列表
 // @Description 商品id
 // @Author  AInoriex  (2025/08/12 11:04)
-func GetProductsPlayerByProductId(product_id string) (res []*model.ProductsPlayer, err error) {
+func GetAllProductsPlayerByProductId(product_id string) (res []*model.ProductsPlayer, err error) {
 	err = db.MysqlCon.Where("product_id = ?", product_id).Find(&res).Error
 	if err != nil {
 		log.Errorf("GetProductsPlayerByProductId fail, product_id:%s, err:%+v", product_id, err)
+		return nil, err
+	}
+
+	return
+}
+
+// @Title   获取指定数据记录列表
+// @Description 商品id, 状态status
+// @Author  AInoriex  (2025/08/12 11:04)
+func GetSelectedProductsPlayerByProductId(product_id string, status int32, order string, limit int32) (res []*model.ProductsPlayer, err error) {
+	err = db.MysqlCon.Where("product_id = ? and status = ?", product_id, status).
+		Order(order).Limit(int(limit)).Find(&res).Error
+	if err != nil {
+		log.Errorf("GetSelectedProductsPlayerByProductId fail, product_id:%s, err:%+v", product_id, err)
 		return nil, err
 	}
 

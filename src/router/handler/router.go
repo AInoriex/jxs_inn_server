@@ -16,8 +16,10 @@ func InitRouter() {
 	// 设置路由组
 	api := router.Group("/v1/eshop_api")
 	{
+		// 公共路由（需要接口风控限制）
 		// 商品路由
 		product := api.Group("/product")
+		// product.Use(middleware.RateLimitMiddleware())
 		{
 			product.GET("/list", GetProductList)
 			// product.GET("/search", SearchProducts)
@@ -25,6 +27,7 @@ func InitRouter() {
 
 		// 登录路由
 		auth := api.Group("/auth")
+		// auth.Use(middleware.RateLimitMiddleware())
 		{
 			// 网站
 			// auth.POST("/register", UserRegister)
@@ -64,7 +67,7 @@ func InitRouter() {
 			user.GET("/inventory/list", GetInventoryList)
 		}
 
-		// 管理员路由
+		// 管理员权限路由
 		admin := api.Group("/admin")
 		admin.Use(middleware.ParseAuthorization(), middleware.RequireRole(model.UserRoleAdmin))
 		{
@@ -82,6 +85,14 @@ func InitRouter() {
 				product.POST("/create", AdminCreateProduct)
 				product.PUT("/remove/:id", AdminRemoveProduct)
 				// product.DELETE("/delete/:id", DeleteProduct)
+				// product.GET("/search", SearchProducts)
+			}
+
+			// 商品资源操作
+			product_player := admin.Group("/player")
+			{
+				// product_player.GET("/list", AdminGetProductPlayerList)
+				product_player.POST("/upload_streaming_file", UploadStreamingFile)
 			}
 
 			// 订单操作

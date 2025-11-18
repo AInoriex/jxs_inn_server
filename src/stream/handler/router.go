@@ -12,10 +12,11 @@ func InitRouter() {
 	router.Use(middleware.Logger(), gin.Recovery(), middleware.Cors())
 
 	// 设置路由组
-	api := router.Group("/v1/steaming")
+	stream_v1 := router.Group("/v1/steaming")
 	{
-		api.POST("/upload_streaming_file", UploadStreamingFile)
-		api.GET("/player/:filename", StreamingPlayer)
+		stream_v1.POST("/upload_streaming_file", UploadStreamingFile)
+		stream_v1.POST("/internal_upload_streaming_file", InternalUploadStreamingFile)
+		stream_v1.GET("/player/:filename", StreamingPlayer)
 	}
 
 	log.Infof("初始化流媒体服务成功, URL：%s", config.CommonConfig.HttpServer.Addr)

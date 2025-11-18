@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"eshop_server/src/common/api"
 	"encoding/json"
 	"eshop_server/src/router/dao"
 	"eshop_server/src/router/model"
@@ -22,7 +23,7 @@ func GetCartList(c *gin.Context) {
 	user, err := isValidUser(c)
 	if err != nil {
 		log.Error("GetCartList 非法用户请求", zap.Error(err))
-		FailWithAuthorization(c)
+		api.FailWithAuthorization(c)
 		return
 	}
 
@@ -30,7 +31,7 @@ func GetCartList(c *gin.Context) {
 	// sign := c.DefaultQuery("sign", "0")
 	// if !CheckSignParam(sign) {
 	// 	log.Infof("GetCartList sign NOT pass. sign:%v", sign)
-	// 	// Success(c, dataMap)
+	// 	// api.Success(c, dataMap)
 	// 	FailTrack(c, uerrors.Parse(uerrors.ErrApiParamSignNotPass.Error()).Code, uerrors.Parse(uerrors.ErrApiParamSignNotPass.Error()).Detail+"，别在这搞事哈", dataMap)
 	// 	return
 	// }
@@ -39,7 +40,7 @@ func GetCartList(c *gin.Context) {
 	cartList, err := dao.GetCartItemsByUserId(user.Id)
 	if err != nil {
 		log.Error("GetCartList GetCartItemsByUserId fail", zap.Error(err))
-		Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
+		api.Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
 		return
 	}
 
@@ -67,7 +68,7 @@ func GetCartList(c *gin.Context) {
 
 	// 返回数据
 	dataMap["result"] = resList
-	Success(c, dataMap)
+	api.Success(c, dataMap)
 }
 
 // @Title      创建购物车商品
@@ -78,14 +79,14 @@ func GetCartList(c *gin.Context) {
 func CreateCart(c *gin.Context) {
 	var err error
 	dataMap := make(map[string]interface{})
-	req := GetGinBody(c)
+	req := api.GetGinBody(c)
 	log.Info("CreateProduct 请求参数", zap.String("body", string(req)))
 
 	// JWT用户查询&鉴权
 	user, err := isValidUser(c)
 	if err != nil {
 		log.Error("CreateCart 非法用户请求", zap.Error(err))
-		FailWithAuthorization(c)
+		api.FailWithAuthorization(c)
 		return
 	}
 
@@ -96,20 +97,20 @@ func CreateCart(c *gin.Context) {
 	err = json.Unmarshal(req, &reqbody)
 	if err != nil {
 		log.Errorf("CreateCart json解析失败, error:%v", err)
-		Fail(c, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Code, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Detail)
+		api.Fail(c, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Code, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Detail)
 		return
 	}
 
 	// 校验参数
 	if reqbody.ProductId == "" || reqbody.Quantity <= 0 {
 		log.Error("CreateCart 商品参数错误", zap.String("product_id", reqbody.ProductId), zap.Int32("quantity", reqbody.Quantity))
-		Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail)
+		api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail)
 		return
 	}
 	// HARDNEED 商品数量校验，数量只支持1个
 	if reqbody.Quantity != 1 {
 		log.Error("CreateCart 商品数量错误", zap.Int32("quantity", reqbody.Quantity))
-		Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":当前仅支持同种单件商品结算")
+		api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":当前仅支持同种单件商品结算")
 		return
 	}
 
@@ -117,14 +118,14 @@ func CreateCart(c *gin.Context) {
 	_, err = dao.CheckProductById(reqbody.ProductId)
 	if err != nil {
 		log.Error("CreateCart 获取商品信息失败", zap.String("product_id", reqbody.ProductId))
-		Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail+":商品不存在")
+		api.Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail+":商品不存在")
 		return	
 	}
 	// 校验用户购物车商品是否存在
 	cartItem, err := dao.GetCartItemByUserIdAndProductId(user.Id, reqbody.ProductId)
 	if err == nil && cartItem.Id > 0 {
 		log.Warn("CreateCart 用户购物车商品已存在", zap.String("userId", cartItem.UserId), zap.String("productId", cartItem.ProductId))
-		Success(c, dataMap)
+		api.Success(c, dataMap)
 		return
 	}
 
@@ -137,12 +138,12 @@ func CreateCart(c *gin.Context) {
 	_, err = dao.CreateCartItem(cartItem)
 	if err != nil {
 		log.Error("CreateCart 创建购物车商品失败", zap.Error(err))
-		Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail)
+		api.Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail)
 		return
 	}
 
 	// 返回数据
-	Success(c, dataMap)
+	api.Success(c, dataMap)
 }
 
 // @Title      移除购物车商品
@@ -153,14 +154,14 @@ func CreateCart(c *gin.Context) {
 func RemoveCart(c *gin.Context) {
 	var err error
 	dataMap := make(map[string]interface{})
-	req := GetGinBody(c)
+	req := api.GetGinBody(c)
 	log.Info("RemoveCart 请求参数", zap.String("body", string(req)))
 
 	// JWT用户查询&鉴权
 	user, err := isValidUser(c)
 	if err != nil {
 		log.Error("RemoveCart 非法用户请求", zap.Error(err))
-		FailWithAuthorization(c)
+		api.FailWithAuthorization(c)
 		return
 	}
 
@@ -171,14 +172,14 @@ func RemoveCart(c *gin.Context) {
 	err = json.Unmarshal(req, &reqbody)
 	if err != nil {
 		log.Errorf("RemoveCart json解析失败, error:%v", err)
-		Fail(c, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Code, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Detail)
+		api.Fail(c, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Code, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Detail)
 		return
 	}
 
 	// 校验参数
 	if reqbody.ProductId == "" {
 		log.Error("RemoveCart json参数错误", zap.String("cart_id", reqbody.ProductId))
-		Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail)
+		api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail)
 		return
 	}
 
@@ -186,10 +187,10 @@ func RemoveCart(c *gin.Context) {
 	err = dao.RemoveUserCartProduct(user.Id, reqbody.ProductId)
 	if err != nil {
 		log.Error("RemoveCart 移除购物车商品失败", zap.Error(err))
-		Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail)
+		api.Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail)
 		return
 	}
 
 	// 返回数据
-	Success(c, dataMap)
+	api.Success(c, dataMap)
 }

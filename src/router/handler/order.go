@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"eshop_server/src/common/api"
 	"eshop_server/src/router/dao"
 	"eshop_server/src/router/model"
 	uerrors "eshop_server/src/utils/errors"
@@ -20,14 +21,14 @@ import (
 func CreateUserOrder(c *gin.Context) {
 	var err error
 	dataMap := make(map[string]interface{})
-	req := GetGinBody(c)
+	req := api.GetGinBody(c)
 	log.Info("CreateOrder 请求参数", zap.String("body", string(req)))
 
 	// JWT用户查询&鉴权
 	user, err := isValidUser(c)
 	if err != nil {
 		log.Error("CreateOrder 非法用户请求", zap.Error(err))
-		FailWithAuthorization(c)
+		api.FailWithAuthorization(c)
 		return
 	}
 
@@ -38,7 +39,7 @@ func CreateUserOrder(c *gin.Context) {
 	err = json.Unmarshal(req, &reqbody)
 	if err != nil {
 		log.Errorf("CreateOrder json解析失败, error:%v", err)
-		Fail(c, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Code, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Detail)
+		api.Fail(c, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Code, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Detail)
 		return
 	}
 	// HARDCODE 当前创建订单默认使用YLT支付
@@ -48,37 +49,37 @@ func CreateUserOrder(c *gin.Context) {
 	// 校验参数
 	if len(reqbody.ItemList) <= 0 {
 		log.Error("CreateOrder 商品列表为空")
-		Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":商品列表为空")
+		api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":商品列表为空")
 		return
 	}
 	if reqbody.PaymentGatewayType <= 0 || reqbody.PaymentMethod == "" {
 		log.Error("CreateOrder 支付参数错误", zap.Int32("payment_gateway", reqbody.PaymentGatewayType), zap.String("payment_method", reqbody.PaymentMethod))
-		Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":支付参数无效")
+		api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":支付参数无效")
 		return
 	}
 	// HARDNEED 当前只支持同种且单件商品结算
 	if len(reqbody.ItemList) > 1 {
 		log.Error("CreateOrder 商品列表过多，当前仅支持同种且单件商品结算", zap.Int("item_list", len(reqbody.ItemList)))
-		Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":当前仅支持同种单件商品结算")
+		api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":当前仅支持同种单件商品结算")
 		return
 	}
 	for _, item := range reqbody.ItemList {
 		if item.ProductId == "" || item.Quantity <= 0 {
 			log.Error("CreateOrder 商品参数错误", zap.String("product_id", item.ProductId), zap.Int32("quantity", item.Quantity))
-			Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":商品信息无效")
+			api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":商品信息无效")
 			return
 		}
 		// HARDNEED 商品数量校验，数量只支持1个
 		if item.Quantity != 1 {
 			log.Error("CreateOrder 商品数量错误", zap.Int32("quantity", item.Quantity))
-			Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":当前仅支持同种单件商品结算")
+			api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":当前仅支持同种单件商品结算")
 			return
 		}
 	}
 	// HARDNEED 支付方式校验，当前仅支持扫码支付+YLT支付
 	if reqbody.PaymentMethod != model.PaymentMethodQrcode || reqbody.PaymentGatewayType != model.PaymentGatewayTypeYlt {
 		log.Error("CreateOrder 支付参数无效", zap.String("payment_method", reqbody.PaymentMethod), zap.Int32("payment_gateway", reqbody.PaymentGatewayType))
-		Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":支付参数无效")
+		api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":支付参数无效")
 		return
 	}
 
@@ -93,7 +94,7 @@ func CreateUserOrder(c *gin.Context) {
 	product, err := dao.CheckProductById(item.ProductId)
 	if err != nil {
 		log.Error("CreateOrder 获取商品信息失败", zap.String("product_id", item.ProductId))
-		Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail+":商品不存在")
+		api.Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail+":商品不存在")
 		return
 	}
 	// 计算总价
@@ -108,7 +109,7 @@ func CreateUserOrder(c *gin.Context) {
 	}
 	if _, err = dao.CreateOrderItem(OrderItem); err != nil {
 		log.Error("CreateOrder 创建订单商品失败", zap.Error(err))
-		Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail)
+		api.Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail)
 		return
 	}
 
@@ -129,7 +130,7 @@ func CreateUserOrder(c *gin.Context) {
 	order, err = dao.CreateOrder(order)
 	if err != nil {
 		log.Error("CreateOrder 创建订单失败", zap.Error(err))
-		Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail+":创建订单失败")
+		api.Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail+":创建订单失败")
 		return
 	}
 
@@ -137,7 +138,7 @@ func CreateUserOrder(c *gin.Context) {
 	qrcode_base64, err := QrcodeOrderPaymentHandler(reqbody, order, product)
 	if err != nil {
 		log.Error("CreateOrder 创建二维码支付流程失败", zap.Error(err))
-		Fail(c, uerrors.Parse(uerrors.ErrBusy.Error()).Code, uerrors.Parse(uerrors.ErrBusy.Error()).Detail+":创建二维码支付流程失败")
+		api.Fail(c, uerrors.Parse(uerrors.ErrBusy.Error()).Code, uerrors.Parse(uerrors.ErrBusy.Error()).Detail+":创建二维码支付流程失败")
 		return
 	}
 
@@ -156,7 +157,7 @@ func CreateUserOrder(c *gin.Context) {
 	// 返回数据
 	dataMap["order_id"] = order.Id
 	dataMap["qrcode"] = qrcode_base64
-	Success(c, dataMap)
+	api.Success(c, dataMap)
 }
 
 // @Title		查询订单支付状态
@@ -172,7 +173,7 @@ func GetUserOrderStatus(c *gin.Context) {
 	user, err := isValidUser(c)
 	if err != nil {
 		log.Error("GetUserOrderStatus 非法用户请求", zap.Error(err))
-		FailWithAuthorization(c)
+		api.FailWithAuthorization(c)
 		return
 	}
 
@@ -180,7 +181,7 @@ func GetUserOrderStatus(c *gin.Context) {
 	orderId := c.Query("order_id")
 	if orderId == "" {
 		log.Error("GetUserOrderStatus 订单ID为空")
-		Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":订单ID为空")
+		api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":订单ID为空")
 		return
 	}
 
@@ -188,26 +189,26 @@ func GetUserOrderStatus(c *gin.Context) {
 	order, err := dao.GetOrderByUserIdAndProductId(user.Id, orderId)
 	if err != nil {
 		log.Error("GetUserOrderStatus 查询订单失败", zap.Error(err))
-		Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
+		api.Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
 		return
 	}
 
 	if order.PaymentStatus == model.OrderPaymentStatusTimeOut {
 		// 支付超时
-		Fail(c, uerrors.Parse(uerrors.ErrorUserPayTimeout.Error()).Code, uerrors.Parse(uerrors.ErrorUserPayTimeout.Error()).Detail)
+		api.Fail(c, uerrors.Parse(uerrors.ErrorUserPayTimeout.Error()).Code, uerrors.Parse(uerrors.ErrorUserPayTimeout.Error()).Detail)
 		return
 	} else if order.PaymentStatus == model.OrderPaymentStatusPayFail {
 		// 支付失败
-		Fail(c, uerrors.Parse(uerrors.ErrorUserPayFailed.Error()).Code, uerrors.Parse(uerrors.ErrorUserPayFailed.Error()).Detail)
+		api.Fail(c, uerrors.Parse(uerrors.ErrorUserPayFailed.Error()).Code, uerrors.Parse(uerrors.ErrorUserPayFailed.Error()).Detail)
 		return
 	} else if order.PaymentStatus != model.PaymentStatusPayed {
 		// 已创建&未支付&支付中&取消支付&其他
-		Fail(c, uerrors.Parse(uerrors.ErrorUserNotPay.Error()).Code, uerrors.Parse(uerrors.ErrorUserNotPay.Error()).Detail)
+		api.Fail(c, uerrors.Parse(uerrors.ErrorUserNotPay.Error()).Code, uerrors.Parse(uerrors.ErrorUserNotPay.Error()).Detail)
 		return
 	} else {
 		// 已支付
 		// TODO: 补偿修复用户购买历史记录?
-		Success(c, dataMap)
+		api.Success(c, dataMap)
 	}
 }
 
@@ -225,7 +226,7 @@ func AdminGetUserOrderList(c *gin.Context) {
 	orders, err := dao.GetAllOrders(1, 50, "created_at", "desc")
 	if err != nil {
 		log.Error("AdminGetUserOrderList fail", zap.Error(err))
-		Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
+		api.Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
 		return
 	}
 
@@ -289,5 +290,5 @@ func AdminGetUserOrderList(c *gin.Context) {
 	// 返回数据
 	dataMap["result"] = resList
 	dataMap["len"] = len(resList)
-	Success(c, dataMap)
+	api.Success(c, dataMap)
 }

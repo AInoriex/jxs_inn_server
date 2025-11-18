@@ -3,26 +3,27 @@ package handler
 import (
 	"encoding/json"
 	"errors"
+	"eshop_server/src/common/api"
 	"eshop_server/src/router/dao"
 	"eshop_server/src/router/model"
 	"eshop_server/src/utils/alarm"
 	"eshop_server/src/utils/config"
-	"eshop_server/src/utils/utime"
 	uerrors "eshop_server/src/utils/errors"
 	"eshop_server/src/utils/log"
+	"eshop_server/src/utils/utime"
 	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
-// @Title		 获取商品列表
+// @Title		 获取商品列表(前台商品售卖页)
 // @Description  获取当前所有上架的商品
 // @Response     json
 // @Router       /v1/eshop_api/product/list [get]
 func GetProductList(c *gin.Context) {
 	var err error
-	req := GetGinBody(c)
+	req := api.GetGinBody(c)
 	dataMap := make(map[string]interface{})
 	log.Infof("GetProductList 请求参数, req:%s", string(req))
 
@@ -30,7 +31,7 @@ func GetProductList(c *gin.Context) {
 	resList, err := dao.GetProductsByStatus(model.ProductStatusOn)
 	if err != nil {
 		log.Errorf("GetProductList GetProductsByStatus fail, err:%v", err)
-		Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
+		api.Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
 		return
 	}
 
@@ -43,7 +44,7 @@ func GetProductList(c *gin.Context) {
 	// 返回数据
 	dataMap["result"] = resUserList
 	dataMap["len"] = len(resUserList)
-	Success(c, dataMap)
+	api.Success(c, dataMap)
 }
 
 // @Title		 获取商品列表(后台)
@@ -52,7 +53,7 @@ func GetProductList(c *gin.Context) {
 // @Router       /v1/eshop_api/admin/product/list [get]
 func AdminGetProductList(c *gin.Context) {
 	var err error
-	req := GetGinBody(c)
+	req := api.GetGinBody(c)
 	dataMap := make(map[string]interface{})
 	log.Infof("AdminGetProductList 请求参数, req:%s", string(req))
 
@@ -62,25 +63,30 @@ func AdminGetProductList(c *gin.Context) {
 	productList, err := dao.GetAllProducts(1, 50, "created_at", "desc")
 	if err != nil {
 		log.Errorf("AdminGetProductList GetAllProducts fail, err:%v", err)
-		Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
+		api.Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
 		return
 	}
 
 	// 对于每个商品获取商品播放列表
+	_selectlimit := int32(10)
+	_orderby := "updated_at desc"
 	for _, v := range productList {
 		var tmp model.CreateProductReq = model.CreateProductReq{
 			Products: *v,
 		}
 		// 获取播放信息
 		tmp.PP = make([]model.ProductsPlayer, 0)
-		playerList, err := dao.GetProductsPlayerByProductId(v.Id)
+		// playerList, err := dao.GetProductsPlayerByProductId(v.Id)
+		playerList, err := dao.GetSelectedProductsPlayerByProductId(v.Id, model.ProductsPlayerStatusOk, _orderby, _selectlimit)
 		if err != nil {
-			log.Errorf("AdminGetProductList GetProductsPlayerByProductId fail, product_id:%s, err:%v", v.Id, err)
-			Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
+			log.Errorf("AdminGetProductList GetSelectedProductsPlayerByProductId fail, product_id:%s, err:%v", v.Id, err)
+			api.Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
 			return
 		}
 		for _, p := range playerList {
-			tmp.PP = append(tmp.PP, *p)
+			if p.PlayUrl != "" || p.Status == model.ProductsPlayerStatusOk {
+				tmp.PP = append(tmp.PP, *p)
+			}
 		}
 		resultProductList = append(resultProductList, tmp)
 	}
@@ -88,38 +94,38 @@ func AdminGetProductList(c *gin.Context) {
 	// 返回数据
 	dataMap["result"] = resultProductList
 	dataMap["len"] = len(resultProductList)
-	Success(c, dataMap)
+	api.Success(c, dataMap)
 }
 
-// @Title		 上架商品
+// @Title		 创建商品
 // @Description	 创建新商品并上架
 // @Accept       json model.CreateProductReq
 // @Response     json
-// @Router       /v1/eshop_api/product/create [post]
+// @Router       /v1/eshop_api/admin/product/create [post]
 func AdminCreateProduct(c *gin.Context) {
 	var err error
-	req := GetGinBody(c)
+	req := api.GetGinBody(c)
 	dataMap := make(map[string]interface{})
-	log.Infof("CreateProduct 请求参数, req:%s", string(req))
+	log.Infof("AdminCreateProduct 请求参数, req:%s", string(req))
 
 	// JSON解析
 	var reqbody *model.CreateProductReq
 	err = json.Unmarshal(req, &reqbody)
 	if err != nil {
-		log.Errorf("CreateProduct json解析失败, error:%v", err)
-		Fail(c, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Code, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Detail)
+		log.Errorf("AdminCreateProduct json解析失败, error:%v", err)
+		api.Fail(c, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Code, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Detail)
 		return
 	}
 
 	// 参数判断和预处理
 	if reqbody.Id == "" || reqbody.Title == "" || reqbody.Price <= 0 {
-		log.Errorf("CreateProduct 商品基本参数无效, reqbody:%+v", reqbody)
-		Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":基本参数有误")
+		log.Errorf("AdminCreateProduct 商品基本参数无效, reqbody:%+v", reqbody)
+		api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":基本参数有误")
 		return
 	}
 	if reqbody.ExternalId == "" || reqbody.ExternalLink == "" {
-		log.Errorf("CreateProduct 商品第三方参数无效, reqbody:%+v", reqbody)
-		Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":第三方参数有误")
+		log.Errorf("AdminCreateProduct 商品第三方参数无效, reqbody:%+v", reqbody)
+		api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":第三方参数有误")
 		return
 	}
 	if reqbody.ImageUrl == "" {
@@ -129,8 +135,8 @@ func AdminCreateProduct(c *gin.Context) {
 	// 创建上架商品
 	res, err := dao.CreateProduct(&reqbody.Products)
 	if err != nil {
-		log.Errorf("CreateProduct 创建商品失败, reqbody:%+v, err:%v", reqbody, err)
-		Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail)
+		log.Errorf("AdminCreateProduct 创建商品失败, reqbody:%+v, err:%v", reqbody, err)
+		api.Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail)
 		return
 	}
 
@@ -139,40 +145,47 @@ func AdminCreateProduct(c *gin.Context) {
 		if v.ProductId == "" {
 			v.ProductId = res.Id
 		}
-		// 查找是否存在映射，不存在则创建
-		if _, err = dao.GetProductsPlayerByProductId(v.ProductId); err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+		// 查找商品资源映射是否存在，不存在则创建
+		if _, err = dao.GetAllProductsPlayerByProductId(v.ProductId); err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Infof("AdminCreateProduct 商品资源映射不存在即将创建映射关系, product_id:%s", v.ProductId)
 			_, createErr := dao.CreateProductsPlayer(&v)
 			if createErr != nil {
-				log.Errorf("CreateProduct 创建商品资源映射失败, reqbody:%+v, err:%v", reqbody, createErr)
-				Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail)
+				log.Errorf("AdminCreateProduct 创建商品资源映射失败, reqbody:%+v, err:%v", reqbody, createErr)
+				api.Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail)
 				return
 			}
+		} else if err != nil {
+			log.Errorf("AdminCreateProduct GetProductsPlayerByProductId failed, product_id:%s, err:%v", v.ProductId, err)
+			api.Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail+":查询商品资源映射失败")
+			return
+		} else {
+			log.Infof("AdminCreateProduct 商品资源映射已存在跳过创建, product_id:%s", v.ProductId)
 		}
 	}
 
 	// 飞书告警
 	if err = alarm.PostFeiShu(
-		"info", config.CommonConfig.LarkAlarm.InfoBotWebhook, 
+		"info", config.CommonConfig.LarkAlarm.InfoBotWebhook,
 		fmt.Sprintf("[JXS管理后台] 新商品上架成功 \n\t 环境:%s \n\t商品信息:%+v \n\t通知时间:%s", config.CommonConfig.Env, res, utime.TimeToStr(utime.GetNow())),
 	); err != nil {
-		log.Errorf("CreateProduct 飞书通知失败, reqbody:%+v, err:%v", reqbody, err)
+		log.Errorf("AdminCreateProduct 飞书通知失败, reqbody:%+v, err:%v", reqbody, err)
 	}
 
 	// 返回数据
 	dataMap["result"] = res
-	Success(c, dataMap)
+	api.Success(c, dataMap)
 }
 
 // @Title		 下架商品
 // @Description  下架商品使页面不可见
 // @Param        product_id
 // @Response     json
-// @Router       /v1/eshop_api/product/remove [put]
+// @Router       /v1/eshop_api/admin/product/remove [put]
 func AdminRemoveProduct(c *gin.Context) {
 	var err error
-	req := GetGinBody(c)
+	req := api.GetGinBody(c)
 	dataMap := make(map[string]interface{})
-	log.Infof("GetProductList 请求参数, req:%s", string(req))
+	log.Infof("AdminRemoveProduct 请求参数, req:%s", string(req))
 
 	// 查询商品ID信息
 	ProductID := c.Param("id")
@@ -180,8 +193,8 @@ func AdminRemoveProduct(c *gin.Context) {
 	// 查询数据库中的商品信息
 	res, err := dao.GetProductById(ProductID)
 	if err != nil {
-		log.Errorf("RemoveProduct GetProductById fail, ProductID:%s, err:%v", ProductID, err)
-		Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
+		log.Errorf("AdminRemoveProduct GetProductById fail, ProductID:%s, err:%v", ProductID, err)
+		api.Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
 		return
 	}
 
@@ -189,14 +202,20 @@ func AdminRemoveProduct(c *gin.Context) {
 	res.Status = model.ProductStatusOff
 	res, err = dao.UpdateProductsByField(res, []string{"status"})
 	if err != nil {
-		log.Errorf("RemoveProduct 更新商品状态失败, m:%+v, err:%v", res, err)
-		Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail)
+		log.Errorf("AdminRemoveProduct 更新商品状态失败, m:%+v, err:%v", res, err)
+		api.Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail)
 		return
 	}
 
 	// TODO 飞书通知下架
+	if err = alarm.PostFeiShu(
+		"info", config.CommonConfig.LarkAlarm.InfoBotWebhook,
+		fmt.Sprintf("[JXS管理后台] 商品下架成功 \n\t 环境:%s \n\t商品信息:%+v \n\t通知时间:%s", config.CommonConfig.Env, res, utime.TimeToStr(utime.GetNow())),
+	); err != nil {
+		log.Errorf("AdminRemoveProduct 飞书通知失败, res:%+v, err:%v", res, err)
+	}
 
 	// 返回成功响应
 	dataMap["result"] = res
-	Success(c, dataMap)
+	api.Success(c, dataMap)
 }

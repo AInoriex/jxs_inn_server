@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"eshop_server/src/common/api"
 	"eshop_server/src/router/dao"
 	"eshop_server/src/router/model"
 	uerrors "eshop_server/src/utils/errors"
@@ -22,7 +23,7 @@ func GetInventoryList(c *gin.Context) {
 	user, err := isValidUser(c)
 	if err != nil {
 		log.Error("GetInventoryList 非法用户请求", zap.Error(err))
-		FailWithAuthorization(c)
+		api.FailWithAuthorization(c)
 		return
 	}
 	log.Infof("GetInventoryList 请求参数, user_id: %s", user.Id)
@@ -31,7 +32,7 @@ func GetInventoryList(c *gin.Context) {
 	purchaseList, err := dao.GetPurchaseHistorysByUserId(user.Id)
 	if err != nil {
 		log.Errorf("GetInventoryList 查询购买历史记录失败, user_id: %s, error: %s", user.Id, err.Error())
-		Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
+		api.Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
 		return
 	}
 
@@ -62,5 +63,5 @@ func GetInventoryList(c *gin.Context) {
 
 	dataMap["purchase_list"] = GetInventoryListResponseList
 	log.Infof("GetInventoryList user_id: %s 查询作品成功，返回数据: %+v", user.Id, dataMap)
-	Success(c, dataMap)
+	api.Success(c, dataMap)
 }
