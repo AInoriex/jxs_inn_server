@@ -7,6 +7,19 @@ import (
 	"time"
 )
 
+// 公共日志记录方法，除自定义消息外，额外记录请求URL、方法和客户端IP
+func LogAuthInfof(ctx *gin.Context, info_msg string, v ...interface{}) {
+	info_msg = "middleware.auth info | %15s | %s %s |" + info_msg
+	args := append(v, ctx.ClientIP(), ctx.Request.Method, ctx.Request.URL)
+	log.Infof(info_msg, args...)
+}
+
+func LogAuthErrorf(ctx *gin.Context, err_msg string, v ...interface{}) {
+	err_msg = "middleware.auth eror | %15s | %s %s |" + err_msg
+	args := append(v, ctx.ClientIP(), ctx.Request.Method, ctx.Request.URL)
+	log.Errorf(err_msg, args...)
+}
+
 // @Title	自定义日志中间件
 // @Description	defer 上报埋点信息（需按固定格式透传）
 // @Author  AInoriex  (2025/04/23 17:02)
@@ -16,16 +29,14 @@ func Logger() gin.HandlerFunc {
 		path := c.Request.URL.Path
 		method := c.Request.Method
 		clientIP := c.ClientIP()
-		log.Infof("begin server | %s  %s | %15s |", method, path, clientIP)
+		log.Infof("middleware.log start | %15s | %s  %s |", clientIP, method, path)
 
 		// body
 		c.Next()
 
 		latency := time.Since(start) //执行时间
 		statusCode := c.Writer.Status()
-		log.Infof("end server | %3d | %10v | %s  %s | %15s |",
-			statusCode, formatLatency(latency), method, path, clientIP,
-		)
+		log.Infof("middleware.log end | %15s | %s  %s | %3d | %10v |", clientIP, method, path, statusCode, formatLatency(latency))
 	}
 }
 

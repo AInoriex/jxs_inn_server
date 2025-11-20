@@ -34,7 +34,7 @@ func InitRouter() {
 			auth.POST("/register", UserRegisterWithVerifyCode)
 			auth.POST("/login", UserLogin)
 			auth.GET("/logout", UserLogout)
-			auth.POST("/refresh_token", UserRefreshToken)
+			auth.POST("/refresh_token", RefreshToken)
 			auth.POST("/verify_email", VerifyEmail)
 			
 			// 管理后台

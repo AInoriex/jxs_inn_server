@@ -1,9 +1,10 @@
 package middleware
 
 import (
+	"errors"
 	"eshop_server/src/common/cache"
+	"eshop_server/src/router/model"
 	"eshop_server/src/utils/config"
-	"eshop_server/src/utils/log"
 	"net/http"
 	"strings"
 	"time"
@@ -20,18 +21,13 @@ type CustomClaims struct {
 }
 
 var (
-	jwtSecret          = []byte(config.CommonConfig.JwtSecret)      // 32位以上安全密钥
-	tokenDuration      = cache.KeyJxsUserTokenTimeout * time.Second // Token有效期
-	TokenRefreshWindow = 5 * time.Minute                            // 刷新时间窗口
-	TokenType          = "Bearer"                                   // token类型
+	jwtSecret          = []byte(config.CommonConfig.JwtSecret)       // 32位以上安全密钥
+	userTokenDuration  = cache.KeyJxsUserTokenTimeout * time.Second  // 用户Token有效期
+	adminTokenDuration = cache.KeyJxsAdminTokenTimeout * time.Second // 管理员Token有效期
+	TokenRefreshWindow = 5 * time.Minute                             // 刷新时间窗口
+	TokenType          = "Bearer"                                    // token类型
+	TokenIssuer        = "eshop_server"                              // token签发者
 )
-
-// 公共日志记录方法，除自定义消息外，额外记录请求URL、方法和客户端IP
-func logAuthErrorf(c *gin.Context, format string, v ...interface{}) {
-	format = format + ", url:%s, method:%s, ip:%s"
-	args := append(v, c.Request.URL, c.Request.Method, c.ClientIP())
-	log.Errorf(format, args...)
-}
 
 // 用户接口权限校验
 func ParseAuthorization() gin.HandlerFunc {
@@ -39,7 +35,7 @@ func ParseAuthorization() gin.HandlerFunc {
 		// 从Header获取Authorization
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			logAuthErrorf(c, "ParseAuthorization WITHOUT `Authorization` headers")
+			LogAuthErrorf(c, "ParseAuthorization WITHOUT `Authorization` headers")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "权限不足"})
 			return
 		}
@@ -47,7 +43,7 @@ func ParseAuthorization() gin.HandlerFunc {
 		// 检查Token格式：{TokenType} {TokenString}
 		parts := strings.SplitN(authHeader, " ", 2)
 		if !(len(parts) == 2 && parts[0] == TokenType) {
-			logAuthErrorf(c, "ParseAuthorization 认证格式错误, authHeader:%s", authHeader)
+			LogAuthErrorf(c, "ParseAuthorization 认证格式错误, authHeader:%s", authHeader)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "认证格式错误"})
 			return
 		}
@@ -56,7 +52,7 @@ func ParseAuthorization() gin.HandlerFunc {
 		requestToken := parts[1]
 		claims, err := ValidateToken(requestToken)
 		if err != nil {
-			logAuthErrorf(c, "ParseAuthorization 校验token失败, token:%s, err:%s", requestToken, err.Error())
+			LogAuthErrorf(c, "ParseAuthorization 校验token失败, token:%s, err:%s", requestToken, err.Error())
 			HandleTokenError(c, err)
 			return
 		}
@@ -64,12 +60,12 @@ func ParseAuthorization() gin.HandlerFunc {
 		// 校验Redis中的token是否有效（与当前请求token一致）
 		flag, cachedToken := cache.GetJxsUserToken(claims.UserId)
 		if !flag {
-			logAuthErrorf(c, "ParseAuthorization 读取缓存失败, userId:%s", claims.UserId)
+			LogAuthErrorf(c, "ParseAuthorization 读取缓存失败, userId:%s", claims.UserId)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "认证凭证无效"})
 			return
 		}
 		if cachedToken != requestToken {
-			logAuthErrorf(c, "ParseAuthorization 缓存token与请求token不一致, userId:%s, requestToken:%s, cachedToken:%s", claims.UserId, requestToken, cachedToken)
+			LogAuthErrorf(c, "ParseAuthorization 缓存token与请求token不一致, userId:%s, requestToken:%s, cachedToken:%s", claims.UserId, requestToken, cachedToken)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "认证凭证已失效"})
 			return
 		}
@@ -126,6 +122,7 @@ func ValidateToken(tokenString string) (*CustomClaims, error) {
 	return nil, jwt.NewValidationError("invalid token claims", jwt.ValidationErrorClaimsInvalid)
 }
 
+// 获取token中的claims
 func GetTokenClaims(tokenString string) (*CustomClaims, error) {
 	// 使用`jwt.ParseWithClaims`函数解析 token 字符串并提取其声明。
 	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
@@ -146,19 +143,38 @@ func GetTokenClaims(tokenString string) (*CustomClaims, error) {
 	return nil, jwt.NewValidationError("invalid token claims", jwt.ValidationErrorClaimsInvalid)
 }
 
-// Token生成函数（供登录成功后调用）
+// Token生成函数（供登录成功后调用, 根据角色生成不同的token）
 func GenerateToken(userId string, roles []string) (string, error) {
-	return generateToken(userId, roles)
+	if containsRole(roles, model.UserRoleAdmin) {
+		return generateAdminToken(userId, roles)
+	} else if containsRole(roles, model.UserRoleUser) {
+		return generateUserToken(userId, roles)
+	}
+	return "", errors.New("invalid roles")
 }
 
-// 私有生成函数
-func generateToken(userId string, roles []string) (string, error) {
+// 生成用户Token
+func generateUserToken(userId string, roles []string) (string, error) {
 	claims := CustomClaims{
 		UserId: userId,
 		Roles:  roles,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(tokenDuration).Unix(),
-			Issuer:    "eshop_server",
+			ExpiresAt: time.Now().Add(userTokenDuration).Unix(),
+			Issuer:    TokenIssuer,
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(jwtSecret)
+}
+
+// 生成管理员Token
+func generateAdminToken(userId string, roles []string) (string, error) {
+	claims := CustomClaims{
+		UserId: userId,
+		Roles:  roles,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(adminTokenDuration).Unix(),
+			Issuer:    TokenIssuer,
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

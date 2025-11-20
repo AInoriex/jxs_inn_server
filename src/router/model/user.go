@@ -109,7 +109,7 @@ type UserRegisterReq struct {
 }
 
 // 用户刷新token请求体
-type UserRefreshTokenReq struct {
+type RefreshTokenReq struct {
 	OldToken string `json:"token"`
 }
 

@@ -84,6 +84,7 @@ func UserLogin(c *gin.Context) {
 		api.Fail(c, uerrors.Parse(uerrors.ErrBusy.Error()).Code, uerrors.Parse(uerrors.ErrBusy.Error()).Detail)
 		return
 	}
+	middleware.LogAuthInfof(c, "UserLogin generate new user token, userId:%s, roles:%v, token:%s", user.Id, user.Roles, tokenString)
 
 	// 缓存保存token
 	if err = cache.SaveJxsUserToken(user.Id, tokenString); err != nil {
@@ -180,6 +181,7 @@ func AdminLogin(c *gin.Context) {
 		api.Fail(c, uerrors.Parse(uerrors.ErrBusy.Error()).Code, uerrors.Parse(uerrors.ErrBusy.Error()).Detail)
 		return
 	}
+	middleware.LogAuthInfof(c, "AdminLogin  generate new admin token, userId:%s, roles:%v, token:%s", user.Id, user.Roles, tokenString)
 
 	// 缓存保存token
 	if err = cache.SaveJxsUserToken(user.Id, tokenString); err != nil {
@@ -363,25 +365,25 @@ func UserRegisterWithVerifyCode(c *gin.Context) {
 // @Param        json
 // @Produce      json
 // @Router       /v1/eshop_api/auth/refresh_token [post]
-func UserRefreshToken(c *gin.Context) {
+func RefreshToken(c *gin.Context) {
 	var err error
 	req := api.GetGinBody(c)
 	dataMap := make(map[string]interface{})
-	log.Info("UserRefreshToken 请求参数", zap.String("body", string(req)))
+	log.Info("RefreshToken 请求参数", zap.String("body", string(req)))
 
 	// TODO 添加IP风控
 
 	// JSON解析
-	var reqbody model.UserRefreshTokenReq
+	var reqbody model.RefreshTokenReq
 	err = json.Unmarshal(req, &reqbody)
 	if err != nil {
-		log.Errorf("UserRegister json解析失败, error:%v", err)
+		log.Errorf("RefreshToken json解析失败, error:%v", err)
 		api.Fail(c, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Code, uerrors.Parse(uerrors.ErrJsonUnmarshal.Error()).Detail)
 		return
 	}
 	// 校验token是否为空
 	if reqbody.OldToken == "" {
-		log.Error("UserRefreshToken token为空", zap.String("token", reqbody.OldToken))
+		log.Error("RefreshToken token为空", zap.String("token", reqbody.OldToken))
 		api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail)
 		return
 	}
@@ -389,7 +391,7 @@ func UserRefreshToken(c *gin.Context) {
 	// 校验旧token
 	claims, err := middleware.GetTokenClaims(reqbody.OldToken)
 	if err != nil {
-		log.Error("UserRefreshToken 解析token失败", zap.Error(err))
+		log.Error("RefreshToken 解析token失败", zap.Error(err))
 		api.Fail(c, uerrors.Parse(uerrors.ErrBusy.Error()).Code, uerrors.Parse(uerrors.ErrBusy.Error()).Detail)
 		return
 	}
@@ -397,32 +399,34 @@ func UserRefreshToken(c *gin.Context) {
 	// 校验user_id是否有效
 	user, err := dao.GetValidUserById(claims.UserId)
 	if err != nil {
-		log.Errorf("UserRefreshToken 查询用户失败, userId:%s, error:%v", claims.UserId, err)
+		log.Errorf("RefreshToken 查询用户失败, userId:%s, error:%v", claims.UserId, err)
 		api.Fail(c, uerrors.Parse(uerrors.ErrBusy.Error()).Code, uerrors.Parse(uerrors.ErrBusy.Error()).Detail)
 		return
 	}
 
 	// 校验token是否过期
 	if claims.ExpiresAt < time.Now().Unix() { // token已过期，生成新token
-		log.Warnf("UserRefreshToken token已过期，生成新token, old_token:%s", reqbody.OldToken)
+		log.Warnf("RefreshToken token已过期，生成新token, old_token:%s", reqbody.OldToken)
 		newToken, err := middleware.GenerateToken(user.Id, user.Roles)
 		if err != nil {
-			log.Errorf("UserRefreshToken 生成新token失败, err:%v", err)
+			middleware.LogAuthErrorf(c, "RefreshToken 过期token刷新失败, userId:%s, roles:%v, err:%v", user.Id, user.Roles, err)
 			api.Fail(c, uerrors.Parse(uerrors.ErrBusy.Error()).Code, uerrors.Parse(uerrors.ErrBusy.Error()).Detail)
 			return
 		}
+		middleware.LogAuthInfof(c, "RefreshToken 过期token刷新成功, userId:%s, roles:%v, new_token:%s", user.Id, user.Roles, newToken)
 		dataMap["access_token"] = newToken
 	} else if claims.ExpiresAt-time.Now().Unix() < int64(middleware.TokenRefreshWindow.Seconds()) { // token临界过期，在动态刷新token窗口内，生成新token
-		log.Warnf("UserRefreshToken token达刷新临界时间，生成新token, old_token:%s", reqbody.OldToken)
+		log.Warnf("RefreshToken token达刷新临界时间，生成新token, old_token:%s", reqbody.OldToken)
 		newToken, err := middleware.GenerateToken(user.Id, user.Roles)
 		if err != nil {
-			log.Errorf("UserRefreshToken 生成新token失败, err:%v", err)
+			middleware.LogAuthErrorf(c, "RefreshToken 临期token刷新失败, userId:%s, roles:%v, err:%v", user.Id, user.Roles, err)
 			api.Fail(c, uerrors.Parse(uerrors.ErrBusy.Error()).Code, uerrors.Parse(uerrors.ErrBusy.Error()).Detail)
 			return
 		}
+		middleware.LogAuthInfof(c, "RefreshToken 临期token刷新成功, userId:%s, roles:%v, new_token:%s", user.Id, user.Roles, newToken)
 		dataMap["access_token"] = newToken
 	} else { // token未过期，直接返回旧token
-		log.Infof("UserRefreshToken token未过期，返回旧token")
+		middleware.LogAuthInfof(c, "RefreshToken 未过期返回旧token, userId:%s, roles:%v, old_token:%s", user.Id, user.Roles, reqbody.OldToken)
 		dataMap["access_token"] = reqbody.OldToken
 	}
 	dataMap["token_type"] = middleware.TokenType

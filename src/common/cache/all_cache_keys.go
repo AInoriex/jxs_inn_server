@@ -6,8 +6,9 @@ import (
 
 const (
 	// jxs用户登录态
-	KeyJxsUserToken        string = "JxsUser:%v" // userId
-	KeyJxsUserTokenTimeout        = 30 * 60      // 用户Token有效时长30分钟
+	KeyJxsUserToken         string = "JxsUser:%v" // userId
+	KeyJxsUserTokenTimeout         = 30 * 60      // 用户Token有效时长30分钟
+	KeyJxsAdminTokenTimeout        = 120 * 60     // 后台用户Token有效时长120分钟
 
 	// jxs邮箱验证
 	KeyJxsVerifyMailCode          string = "JxsVEmailCode:%v:%v" // ip:toEmail
