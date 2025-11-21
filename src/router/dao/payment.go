@@ -84,6 +84,7 @@ func CreatePayment(m *model.Payment) (res *model.Payment, err error) {
 // @Params	特定字段
 // @Author  AInoriex  (2025/05/08 14:30)
 func UpdatePaymentByField(m *model.Payment, field []string) (res *model.Payment, err error) {
+	m.UpdatedAt = time.Now()
 	log.Infof("UpdatePaymentByField params, m:%+v, field:%+v", m, field)
 	// Select 除 Omit() 外的所有字段（包括零值字段的所有字段）
 	err = db.MysqlCon.Model(&model.Payment{}).Select(field).Omit("id").

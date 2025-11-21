@@ -53,6 +53,7 @@ type Order struct {
 	PaymentId     string    `json:"payment_id" gorm:"column:payment_id;NOT NULL;default:'';comment:'支付ID(关联支付信息表)'"`
 	PaymentStatus int32     `json:"payment_status" gorm:"column:payment_status;NOT NULL;default:0;comment:'支付状态(0已创建, 1待支付, 2已支付, 3支付超时, 4支付失败, 5取消支付)'"`
 	CreatedAt     time.Time `json:"created_at" gorm:"column:created_at;default:CURRENT_TIMESTAMP;comment:'创建时间'"`
+	UpdatedAt     time.Time `json:"updated_at" gorm:"column:updated_at;default:CURRENT_TIMESTAMP;comment:'更新时间'"`
 }
 
 func (t *Order) TableName() string {

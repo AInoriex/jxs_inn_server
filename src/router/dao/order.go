@@ -94,6 +94,7 @@ func CreateOrder(m *model.Order) (res *model.Order, err error) {
 // @Description 特定字段
 // @Author  AInoriex  (2025/05/08 14:30)
 func UpdateOrderByField(m *model.Order, field []string) (res *model.Order, err error) {
+	m.UpdatedAt = time.Now()
 	log.Infof("UpdateOrderByField params, m:%+v, field:%+v", m, field)
 	// Select 除 Omit() 外的所有字段（包括零值字段的所有字段）
 	err = db.MysqlCon.Model(&model.Order{}).Select(field).Omit("id").

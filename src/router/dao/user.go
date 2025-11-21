@@ -95,6 +95,7 @@ func CreateUser(m *model.User) (res *model.User, err error) {
 // @Description 特定字段
 // @Author  AInoriex  (2025/06/17 15:49)
 func UpdateUserByField(m *model.User, field []string) (res *model.User, err error) {
+	m.UpdatedAt = time.Now()
 	log.Infof("UpdateUserByField params, m:%+v, field:%+v", m, field)
 	// Select 除 Omit() 外的所有字段
 	err = db.MysqlCon.Model(&model.User{}).Select(field).Omit("id").Omit("create_at").
