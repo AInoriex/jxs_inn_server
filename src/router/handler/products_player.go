@@ -29,20 +29,23 @@ func UploadStreamingFile(c *gin.Context) {
 	// 从请求中获取product_id
 	product_id := c.PostForm("product_id")
 	if product_id == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "necessary parameter is missing"})
+		log.Errorf("UploadStreamingFile 请求参数错误, product_id为空")
+		api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":缺失必要参数")
 		return
 	}
 
 	// 获取上传的文件
 	file, err := c.FormFile("file")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "file upload failed"})
+		log.Errorf("UploadStreamingFile 请求参数错误, file upload failed, error: %s", err.Error())
+		api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":缺失文件")
 		return
 	}
 
 	// 检查文件类型
 	if !common.CheckFileTypes(file.Filename, []string{".mp3", ".wav"}) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "file type must be mp3 or wav"})
+		log.Errorf("UploadStreamingFile 请求参数错误, 仅支持mp3或wav格式, filename: %s", file.Filename)
+		api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":不支持该文件类型")
 		return
 	}
 	fileType := filepath.Ext(file.Filename)
@@ -125,4 +128,38 @@ func RequestInternalUploadStreamingFile(url string, c *gin.Context) (m model.Pro
 		return
 	}
 	return
+}
+
+// @Title		 更新流媒体文件
+// @Description  更新流媒体文件信息
+// @Response     json
+// @Router       /v1/eshop_api/admin/player/update_streaming_file [post]
+func UpdateStreamingFile(c *gin.Context) {
+	var err error
+	dataMap := make(map[string]interface{})
+
+	// 解析json请求体
+	var reqbody *model.ProductsPlayer
+	if err = c.ShouldBindJSON(&reqbody); err != nil {
+		log.Errorf("UpdateStreamingFile 解析请求体失败, error: %s", err.Error())
+		api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail)
+		return
+	}
+	if reqbody.ProductId == "" {
+		log.Errorf("UpdateStreamingFile 请求参数错误, product_id为空")
+		api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":必要参数缺失")
+		return
+	}
+
+	// 更新player记录
+	_update_fields := []string{"product_id","filename","file_type","file_size","duration","play_type","play_url","status"}
+	player, err := dao.ReplaceProductsPlayerByProductId(reqbody, _update_fields)
+	if err != nil {
+		log.Errorf("UpdateStreamingFile ReplaceProductsPlayerByProductId failed, player: %+v , error: %s", reqbody, err.Error())
+		api.Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail+":更新player记录失败")
+		return
+	}
+
+	dataMap["result"] = player
+	api.Success(c, dataMap)
 }

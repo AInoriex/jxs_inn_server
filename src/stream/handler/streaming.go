@@ -11,7 +11,6 @@ import (
 	uerrors "eshop_server/src/utils/errors"
 	"eshop_server/src/utils/log"
 	"eshop_server/src/utils/uuid"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -35,14 +34,16 @@ func UploadStreamingFile(c *gin.Context) {
 	// 从请求中获取product_id
 	product_id := c.PostForm("product_id")
 	if product_id == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "缺少必要参数"})
+		log.Errorf("UploadStreamingFile 请求参数错误, product_id为空")
+		api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":缺失必要参数")
 		return
 	}
 
 	// 获取上传的文件
 	file, err := c.FormFile("file")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "文件上传失败"})
+		log.Errorf("UploadStreamingFile 请求参数错误, 文件上传失败, error: %s", err.Error())
+		api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":文件上传失败")
 		return
 	}
 
@@ -52,17 +53,20 @@ func UploadStreamingFile(c *gin.Context) {
 	// buffer := make([]byte, 12)
 	// _, err = fileHeader.Read(buffer)
 	// if err != nil {
-	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "file read failed"})
+	// 	log.Errorf("UploadStreamingFile 请求参数错误, file read failed, error: %s", err.Error())
+	// 	api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":文件读取失败")
 	// 	return
 	// }
-	// // 魔数校验示例，需根据实际情况完善
+	// 魔数校验示例，需根据实际情况完善
 	// isValid := validateFileType(buffer)
 	// if !isValid {
-	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "file type must be mp3 or wav"})
+	// 	log.Errorf("UploadStreamingFile 请求参数错误, 文件类型必须为mp3或wav, filename: %s", file.Filename)
+	// 	api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":不支持该文件类型")
 	// 	return
 	// }
 	if !common.CheckFileTypes(file.Filename, []string{".mp3", ".wav"}) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "file type must be mp3 or wav"})
+		log.Errorf("UploadStreamingFile 请求参数错误, 文件类型必须为mp3或wav, filename: %s", file.Filename)
+		api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":不支持该文件类型")
 		return
 	}
 	fileType := filepath.Ext(file.Filename)
@@ -148,8 +152,8 @@ func UploadStreamingFile(c *gin.Context) {
 // @Title		 上传流媒体文件
 // @Description  仅上传流媒体文件到stream服务器
 // @Response     json
-// @Router       /v1/steaming/internal_upload_streaming_file [post]
-func InternalUploadStreamingFile(c *gin.Context) {
+// @Router       /v1/steaming/only_upload_streaming_file [post]
+func UploadStreamingFileOnly(c *gin.Context) {
 	var err error
 	dataMap := make(map[string]interface{})
 	// 从请求中获取product_id
@@ -157,16 +161,18 @@ func InternalUploadStreamingFile(c *gin.Context) {
 	// 获取上传的文件
 	file, err := c.FormFile("file")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "文件上传失败"})
+		log.Errorf("UploadStreamingFileOnly 请求参数错误, file upload failed, filename: %s, error: %s", file.Filename, err.Error())
+		api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":文件上传失败")
 		return
 	}
 	// 检查文件类型
 	if !common.CheckFileTypes(file.Filename, []string{".mp3", ".wav"}) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "文件类型必须为mp3或wav"})
+		log.Errorf("UploadStreamingFileOnly 请求参数错误, 文件类型必须为mp3或wav, filename: %s", file.Filename)
+		api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":不支持该文件类型")
 		return
 	}
 	fileType := filepath.Ext(file.Filename)
-	log.Infof("UploadStreamingFile 获取到文件, filename: %s, filesize: %vMB", file.Filename, file.Size/1024/1024)
+	log.Infof("UploadStreamingFileOnly 获取到文件, filename: %s, filesize: %vMB", file.Filename, file.Size/1024/1024)
 
 	// 创建player记录
 	player := &router_model.ProductsPlayer{
@@ -186,14 +192,14 @@ func InternalUploadStreamingFile(c *gin.Context) {
 	// 保存上传的文件
 	srcFile := filepath.Join(model.StreamFileUploadPath, newFilename)
 	if err = c.SaveUploadedFile(file, srcFile); err != nil {
-		log.Errorf("UploadStreamingFile 保存文件失败, filename: %s , error: %s", file.Filename, err.Error())
+		log.Errorf("UploadStreamingFileOnly 保存文件失败, filename: %s , error: %s", file.Filename, err.Error())
 		api.Fail(c, uerrors.Parse(uerrors.ErrorStreamFileUploadFailed.Error()).Code, uerrors.Parse(uerrors.ErrorStreamFileUploadFailed.Error()).Detail)
 		return
 	}
 	// 更新文件时长
 	player.Duration, err = GetMediaDuration(srcFile)
 	if err != nil {
-		log.Errorf("UploadStreamingFile 获取文件时长失败, srcFile: %s, error: %s", srcFile, err.Error())
+		log.Errorf("UploadStreamingFileOnly 获取文件时长失败, srcFile: %s, error: %s", srcFile, err.Error())
 		api.Fail(c, uerrors.Parse(uerrors.ErrorStreamFileUploadFailed.Error()).Code, uerrors.Parse(uerrors.ErrorStreamFileUploadFailed.Error()).Detail)
 		return
 	}
@@ -202,7 +208,7 @@ func InternalUploadStreamingFile(c *gin.Context) {
 	m3u8FilePath := filepath.Join(model.StreamFileSegmentPath, player.Id+".m3u8") // {file_id}.m3u8
 	err = GenerateAudioM3u8(srcFile, m3u8FilePath)
 	if err != nil {
-		log.Errorf("UploadStreamingFile 生成m3u8文件失败, srcFile: %s, m3u8File: %s, error: %s", srcFile, m3u8FilePath, err.Error())
+		log.Errorf("UploadStreamingFileOnly 生成m3u8文件失败, srcFile: %s, m3u8File: %s, error: %s", srcFile, m3u8FilePath, err.Error())
 		api.Fail(c, uerrors.Parse(uerrors.ErrorStreamFileStreamingFailed.Error()).Code, uerrors.Parse(uerrors.ErrorStreamFileStreamingFailed.Error()).Detail)
 		return
 	}
@@ -212,6 +218,7 @@ func InternalUploadStreamingFile(c *gin.Context) {
 	player.Status = router_model.ProductsPlayerStatusOk
 	player.CreateAt = time.Now()
 	player.UpdateAt = time.Now()
+	log.Infof("UploadStreamingFileOnly 上传文件成功, player_info: %+v", player)
 
 	// 返回成功响应
 	dataMap["result"] = player
@@ -226,7 +233,7 @@ func StreamingPlayer(c *gin.Context) {
 	// 请求参数校验
 	filename := c.Param("filename")
 	if filename == "" {
-		log.Errorf("StreamingPlayer 请求参数filename为空")
+		log.Errorf("StreamingPlayer 请求参数错误, filename为空")
 		api.FailWithFileNotFound(c)
 		return
 	}
@@ -234,7 +241,7 @@ func StreamingPlayer(c *gin.Context) {
 	// 检查请求文件类型是否为m3u8或ts
 	if !common.CheckFileTypes(filename, []string{".m3u8", ".ts"}) {
 		log.Errorf("StreamingPlayer 请求参数格式错误, filename:%s", filename)
-		api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":格式错误")
+		api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":不支持该文件类型")
 		return
 	}
 	log.Infof("StreamingPlayer 请求参数, filename:%s", filename)

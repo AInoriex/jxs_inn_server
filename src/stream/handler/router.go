@@ -15,7 +15,7 @@ func InitRouter() {
 	stream_v1 := router.Group("/v1/steaming")
 	{
 		stream_v1.POST("/upload_streaming_file", UploadStreamingFile)
-		stream_v1.POST("/internal_upload_streaming_file", InternalUploadStreamingFile)
+		stream_v1.POST("/upload_streaming_file_only", UploadStreamingFileOnly)
 		stream_v1.GET("/player/:filename", StreamingPlayer)
 	}
 
