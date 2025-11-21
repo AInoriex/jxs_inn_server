@@ -13,6 +13,12 @@ func InitRouter() {
 	router := gin.Default()
 	router.Use(middleware.Logger(), gin.Recovery(), middleware.Cors())
 
+	// 健康路由
+	health_api := router.Group("/health")
+	{
+		health_api.GET("/ping", HealthPing)
+	}
+
 	// 设置路由组
 	api := router.Group("/v1/eshop_api")
 	{
@@ -93,6 +99,7 @@ func InitRouter() {
 			{
 				// product_player.GET("/list", AdminGetProductPlayerList)
 				product_player.POST("/upload_streaming_file", UploadStreamingFile)
+				product_player.POST("/update_streaming_file", UpdateStreamingFile)
 			}
 
 			// 订单操作
