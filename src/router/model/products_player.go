@@ -4,10 +4,11 @@ import (
 	"time"
 )
 
-const (
-	ProductsPlayerFileTypeMp3 = ".mp3" // 文件类型 mp3
-	ProductsPlayerFileTypeWav = ".wav" // 文件类型 wav
+var (
+	ProductPlayerSupportFileTypeList = []string{"mp3", "wav"} // 商品播放支持的文件类型列表
+)
 
+const (
 	ProductsPlayerPlayTypeHls = "hls" // 播放类型 hls
 
 	ProductsPlayerStatusInit    = 0  // 文件播放状态 0:初始化

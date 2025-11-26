@@ -4,17 +4,16 @@ import (
 	"eshop_server/src/router/model"
 	"eshop_server/src/utils/db"
 	"eshop_server/src/utils/log"
-	"go.uber.org/zap"
 	"time"
 )
 
 // @Title   获取数据记录
 // @Description 商品id
-// @Author  AInoriex  (2024/07/22 18:05)
+// @Author  AInoriex  (2025/07/22 18:05)
 func GetProductById(id string) (res *model.Products, err error) {
 	err = db.MysqlCon.Where("id = ?", id).First(&res).Error
 	if err != nil {
-		log.Error("GetProductById fail", zap.Error(err))
+		log.Errorf("GetProductById fail, err:%v", err)
 		return nil, err
 	}
 
@@ -23,11 +22,11 @@ func GetProductById(id string) (res *model.Products, err error) {
 
 // @Title   检查商品是否有效
 // @Description 商品id
-// @Author  AInoriex  (2024/07/22 18:05)
+// @Author  AInoriex  (2025/07/22 18:05)
 func CheckProductById(id string) (res *model.Products, err error) {
 	err = db.MysqlCon.Where("id = ? and status = ?", id, model.ProductStatusOn).First(&res).Error
 	if err != nil {
-		log.Error("CheckProductById fail", zap.Error(err))
+		log.Errorf("CheckProductById fail, err:%v", err)
 		return nil, err
 	}
 
@@ -36,11 +35,26 @@ func CheckProductById(id string) (res *model.Products, err error) {
 
 // @Title   获取数据记录
 // @Description 商品状态status
-// @Author  AInoriex  (2024/07/22 18:05)
-func GetProductsByStatus(status int32) (res []*model.Products, err error) {
-	err = db.MysqlCon.Where("status = ?", status).Find(&res).Error
+// @Author  AInoriex  (2025/07/22 18:05)
+func GetProductsByStatus(status int32, pageNum int, pageSize int, orderBy string, orderType string) (res []*model.Products, err error) {
+	err = db.MysqlCon.Where("status = ?", status).
+		Limit(pageSize).Offset((pageNum - 1) * pageSize).
+		Order(orderBy + " " + orderType).Find(&res).Error
 	if err != nil {
-		log.Error("GetProductsByStatus fail", zap.Error(err))
+		log.Errorf("GetProductsByStatus fail, err:%v", err)
+		return nil, err
+	}
+
+	return
+}
+
+// @Title   获取数据记录
+// @Description 商品external_id
+// @Author  AInoriex  (2025/11/25 10:35)
+func GetProductByExternalId(externalID string) (res *model.Products, err error) {
+	err = db.MysqlCon.Where("external_id = ?", externalID).First(&res).Error
+	if err != nil {
+		log.Errorf("GetProductByExternalId fail, err:%v", err)
 		return nil, err
 	}
 
@@ -54,7 +68,7 @@ func GetAllProducts(pageNum, pageSize int, orderBy string, orderType string) (re
 	err = db.MysqlCon.Find(&res).Order(orderBy + " " + orderType).
 		Limit(pageSize).Offset((pageNum - 1) * pageSize).Error
 	if err != nil {
-		log.Error("GetAllProducts fail", zap.Error(err))
+		log.Errorf("GetAllProducts fail, err:%v", err)
 		return nil, err
 	}
 
@@ -63,14 +77,14 @@ func GetAllProducts(pageNum, pageSize int, orderBy string, orderType string) (re
 
 // @Title   创建数据记录
 // @Description desc
-// @Author  AInoriex  (2024/07/22 18:05)
+// @Author  AInoriex  (2025/07/22 18:05)
 func CreateProduct(m *model.Products) (res *model.Products, err error) {
-	log.Info("CreateProduct", zap.Any("req", m))
+	log.Infof("CreateProduct params, req:%+v", m)
 	m.CreateAt = time.Now()
 
 	err, _ = db.Create(db.MysqlCon, &m)
 	if err != nil {
-		log.Error("CreateProduct fail", zap.Error(err))
+		log.Errorf("CreateProduct fail, err:%v", err)
 		return m, err
 	}
 
@@ -79,14 +93,14 @@ func CreateProduct(m *model.Products) (res *model.Products, err error) {
 
 // @Title   更新数据记录
 // @Description 特定字段
-// @Author  AInoriex  (2024/07/22 18:05)
+// @Author  AInoriex  (2025/07/22 18:05)
 func UpdateProductsByField(m *model.Products, field []string) (res *model.Products, err error) {
 	log.Infof("UpdateProductsByField params, m:%+v, field:%+v", m, field)
 	// Select 除 Omit() 外的所有字段（包括零值字段的所有字段）
 	err = db.MysqlCon.Model(&model.Products{}).Select(field).Omit("id").
 		Where("id = ?", m.Id).Updates(m).Error
 	if err != nil {
-		log.Error("UpdateProductsByField fail ", zap.Any("m", m))
+		log.Errorf("UpdateProductsByField fail, err:%v", err)
 		return nil, err
 	}
 
@@ -95,9 +109,9 @@ func UpdateProductsByField(m *model.Products, field []string) (res *model.Produc
 
 // @Title   删除数据记录
 // @Description desc
-// @Author  AInoriex  (2024/07/22 18:05)
+// @Author  AInoriex  (2025/07/22 18:05)
 func DeleteProducts(m *model.Products) (res *model.Products, err error) {
-	log.Info("DeleteProducts params", zap.Any("m", m))
+	log.Infof("DeleteProducts params, m:%+v", m)
 	reply, err := GetProductById(m.Id)
 	if err != nil {
 		return
@@ -106,7 +120,7 @@ func DeleteProducts(m *model.Products) (res *model.Products, err error) {
 	// 带额外条件的删除
 	err = db.MysqlCon.Where("id = ?", m.Id).Delete(&m).Error
 	if err != nil {
-		log.Error("DeleteProducts fail", zap.Error(err))
+		log.Errorf("DeleteProducts fail, err:%v", err)
 		return reply, err
 	}
 
@@ -115,7 +129,7 @@ func DeleteProducts(m *model.Products) (res *model.Products, err error) {
 
 // @Title   replace数据记录
 // @Description desc
-// @Author  AInoriex  (2024/07/22 18:05)
+// @Author  AInoriex  (2025/07/22 18:05)
 // @Param   m *model.Products
 // @Param   field []string
 // @Return  *model.Products, error
@@ -134,7 +148,7 @@ func ReplaceProducts(m *model.Products, field []string) (res *model.Products, er
 // @Title   更新status
 // @Description source_type来源, language语言, old_stauts旧状态, new_status新状态
 // @Return	rows, err
-// @Author  AInoriex  (2024/11/13 17:34)
+// @Author  AInoriex  (2025/11/13 17:34)
 func UpdateProductsStatus(old_status int32, new_status int32) (rows int64, err error) {
 	log.Infof("UpdateProductsStatus params, old_status:%v, new_status:%v", old_status, new_status)
 	// 使用事务确保操作的原子性

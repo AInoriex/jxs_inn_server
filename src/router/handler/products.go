@@ -28,7 +28,9 @@ func GetProductList(c *gin.Context) {
 	log.Infof("GetProductList 请求参数, req:%s", string(req))
 
 	// 获取商品信息
-	resList, err := dao.GetProductsByStatus(model.ProductStatusOn)
+	pageNum := int(1)
+	pageSize := int(20)
+	resList, err := dao.GetProductsByStatus(model.ProductStatusOn, pageNum, pageSize, "created_at", "desc")
 	if err != nil {
 		log.Errorf("GetProductList GetProductsByStatus fail, err:%v", err)
 		api.Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
@@ -40,7 +42,7 @@ func GetProductList(c *gin.Context) {
 	for _, v := range resList {
 		resUserList = append(resUserList, v.UserViewFormat())
 	}
-
+	
 	// 返回数据
 	dataMap["result"] = resUserList
 	dataMap["len"] = len(resUserList)
@@ -194,7 +196,7 @@ func AdminRemoveProduct(c *gin.Context) {
 	res, err := dao.GetProductById(ProductID)
 	if err != nil {
 		log.Errorf("AdminRemoveProduct GetProductById fail, ProductID:%s, err:%v", ProductID, err)
-		api.Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail)
+		api.Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail+":查询商品失败")
 		return
 	}
 
@@ -203,7 +205,7 @@ func AdminRemoveProduct(c *gin.Context) {
 	res, err = dao.UpdateProductsByField(res, []string{"status"})
 	if err != nil {
 		log.Errorf("AdminRemoveProduct 更新商品状态失败, m:%+v, err:%v", res, err)
-		api.Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail)
+		api.Fail(c, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Code, uerrors.Parse(uerrors.ErrDboperationFail.Error()).Detail+":更新商品状态失败")
 		return
 	}
 
@@ -213,6 +215,36 @@ func AdminRemoveProduct(c *gin.Context) {
 		fmt.Sprintf("[JXS管理后台] 商品下架成功 \n\t 环境:%s \n\t商品信息:%+v \n\t通知时间:%s", config.CommonConfig.Env, res, utime.TimeToStr(utime.GetNow())),
 	); err != nil {
 		log.Errorf("AdminRemoveProduct 飞书通知失败, res:%+v, err:%v", res, err)
+	}
+
+	// 返回成功响应
+	dataMap["result"] = res
+	api.Success(c, dataMap)
+}
+
+// @Title		 搜索商品
+// @Description  搜索商品
+// @Param        external_id
+// @Response     json
+// @Router       /v1/eshop_api/admin/product/search/external_id/:external_id [get]
+func AdminSearchProductsByExternalId(c *gin.Context) {
+	var err error
+	dataMap := make(map[string]interface{})
+	
+	// 获取路由参数中的 external_id
+	externalID := c.Param("external_id")
+	if externalID == "" {
+		api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":external_id不能为空")
+		return
+	}
+	log.Infof("AdminSearchProductsByExternalId 请求参数, external_id:%s", externalID)
+
+	// 查询数据库中的商品信息
+	res, err := dao.GetProductByExternalId(externalID)
+	if err != nil {
+		log.Errorf("AdminSearchProductsByExternalId GetProductByExternalId fail, externalID:%s, err:%v", externalID, err)
+		api.Fail(c, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Code, uerrors.Parse(uerrors.ErrDbQueryFail.Error()).Detail+":查询商品失败")
+		return
 	}
 
 	// 返回成功响应

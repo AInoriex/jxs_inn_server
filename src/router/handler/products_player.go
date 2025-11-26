@@ -43,12 +43,12 @@ func UploadStreamingFile(c *gin.Context) {
 	}
 
 	// 检查文件类型
-	if !common.CheckFileTypes(file.Filename, []string{".mp3", ".wav"}) {
+	if !common.CheckFileTypes(file.Filename, model.ProductPlayerSupportFileTypeList) {
 		log.Errorf("UploadStreamingFile 请求参数错误, 仅支持mp3或wav格式, filename: %s", file.Filename)
 		api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":不支持该文件类型")
 		return
 	}
-	fileType := filepath.Ext(file.Filename)
+	fileType := strings.ToLower(filepath.Ext(file.Filename))
 	log.Infof("UploadStreamingFile 获取到文件, filename: %s, filesize: %vMB", file.Filename, file.Size/1024/1024)
 
 	// 创建数据库记录

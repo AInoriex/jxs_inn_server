@@ -64,12 +64,12 @@ func UploadStreamingFile(c *gin.Context) {
 	// 	api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":不支持该文件类型")
 	// 	return
 	// }
-	if !common.CheckFileTypes(file.Filename, []string{".mp3", ".wav"}) {
+	if !common.CheckFileTypes(file.Filename, router_model.ProductPlayerSupportFileTypeList) {
 		log.Errorf("UploadStreamingFile 请求参数错误, 文件类型必须为mp3或wav, filename: %s", file.Filename)
 		api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":不支持该文件类型")
 		return
 	}
-	fileType := filepath.Ext(file.Filename)
+	fileType := strings.ToLower(filepath.Ext(file.Filename))
 	log.Infof("UploadStreamingFile 获取到文件, filename: %s, filesize: %vMB", file.Filename, file.Size/1024/1024)
 
 	// 创建数据库记录
@@ -166,12 +166,12 @@ func UploadStreamingFileOnly(c *gin.Context) {
 		return
 	}
 	// 检查文件类型
-	if !common.CheckFileTypes(file.Filename, []string{".mp3", ".wav"}) {
+	if !common.CheckFileTypes(file.Filename, router_model.ProductPlayerSupportFileTypeList) {
 		log.Errorf("UploadStreamingFileOnly 请求参数错误, 文件类型必须为mp3或wav, filename: %s", file.Filename)
 		api.Fail(c, uerrors.Parse(uerrors.ErrParam.Error()).Code, uerrors.Parse(uerrors.ErrParam.Error()).Detail+":不支持该文件类型")
 		return
 	}
-	fileType := filepath.Ext(file.Filename)
+	fileType := strings.ToLower(filepath.Ext(file.Filename))
 	log.Infof("UploadStreamingFileOnly 获取到文件, filename: %s, filesize: %vMB", file.Filename, file.Size/1024/1024)
 
 	// 创建player记录
