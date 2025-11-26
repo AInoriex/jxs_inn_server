@@ -35,6 +35,19 @@ func GetAllProductsPlayerByProductId(product_id string) (res []*model.ProductsPl
 	return
 }
 
+// @Title   获取所有数据记录
+// @Description 获取所有ProductsPlayer记录
+// @Author  AInoriex  (2025/11/26)
+func GetAllProductsPlayer() (res []*model.ProductsPlayer, err error) {
+	err = db.MysqlCon.Find(&res).Error
+	if err != nil {
+		log.Errorf("GetAllProductsPlayer fail, err:%+v", err)
+		return nil, err
+	}
+
+	return
+}
+
 // @Title   获取指定数据记录列表
 // @Description 商品id, 状态status
 // @Author  AInoriex  (2025/08/12 11:04)

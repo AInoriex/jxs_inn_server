@@ -91,7 +91,7 @@ func InitRouter() {
 				product.POST("/create", AdminCreateProduct)
 				product.PUT("/remove/:id", AdminRemoveProduct)
 				// product.DELETE("/delete/:id", DeleteProduct)
-				// product.GET("/search", SearchProducts)
+				product.GET("/search/external_id/:external_id", AdminSearchProductsByExternalId)
 			}
 
 			// 商品资源操作

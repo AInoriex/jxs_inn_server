@@ -11,15 +11,18 @@ var (
 )
 
 func InitScheduler() {
+	// 间隔任务
 	// Schedu.AddJob("0 */10 * * * *", EveryTenMinuteTask) // 每10分钟执行一次
 	// Schedu.AddJob("0 */2 * * * *", EveryTwoMinuteTask)  // 每2分钟执行一次
 	// Schedu.AddJob("0 * * * * *", EveryMinuteTask)       // 每分钟执行一次
 	// Schedu.AddJob("@every 10s", EveryTenSecondTask)     // 每10s执行一次
 	// Schedu.AddJob("@every 5s", EveryFiveSecondTask)     // 每5s执行一次
 	// Schedu.AddJob("@every 2s", EveryTwoSecondTask)      // 每2s执行一次
-
 	Schedu.AddJob("@every 30s", handler.YltLoginCronjob)	// 每30s执行一次
 	Schedu.AddJob("@every 5s", handler.UpdateOrderCronjob)	// 每5s执行一次
+
+	// 定时任务
+	Schedu.AddJob("0 0 4 * * *", handler.CleanStreamingLostFiles) // 每天凌晨4点执行
 	Schedu.Start()
 }
 
