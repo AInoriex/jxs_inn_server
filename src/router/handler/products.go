@@ -7,6 +7,7 @@ import (
 	"eshop_server/src/router/dao"
 	"eshop_server/src/router/model"
 	"eshop_server/src/utils/alarm"
+	"eshop_server/src/utils/common"
 	"eshop_server/src/utils/config"
 	uerrors "eshop_server/src/utils/errors"
 	"eshop_server/src/utils/log"
@@ -20,7 +21,7 @@ import (
 // @Title		 获取商品列表(前台商品售卖页)
 // @Description  获取当前所有上架的商品
 // @Response     json
-// @Router       /v1/eshop_api/product/list [get]
+// @Router       /v1/eshop_api/product/list?pageNum=1&pageSize=20 [get]
 func GetProductList(c *gin.Context) {
 	var err error
 	req := api.GetGinBody(c)
@@ -28,8 +29,14 @@ func GetProductList(c *gin.Context) {
 	log.Infof("GetProductList 请求参数, req:%s", string(req))
 
 	// 获取商品信息
-	pageNum := int(1)
-	pageSize := int(20)
+	pageNum := common.StringToIntNotErr(c.Query("pageNum"))
+	if pageNum <= 0 {
+		pageNum = 1
+	}
+	pageSize := common.StringToIntNotErr(c.Query("pageSize"))
+	if pageSize <= 0 {
+		pageSize = 20
+	}
 	resList, err := dao.GetProductsByStatus(model.ProductStatusOn, pageNum, pageSize, "created_at", "desc")
 	if err != nil {
 		log.Errorf("GetProductList GetProductsByStatus fail, err:%v", err)

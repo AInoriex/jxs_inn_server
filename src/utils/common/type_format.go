@@ -2,12 +2,17 @@ package common
 
 import (
 	"eshop_server/src/utils/log"
-	"go.uber.org/zap"
 	"sort"
 	"strconv"
 )
 
-// 字符串转int64
+// 字符串转int
+func StringToIntNotErr(numString string) int {
+	num := StringToInt64NotErr(numString)
+	return int(num)
+}
+
+// 字符串转int32
 func StringToInt32NotErr(numString string) int32 {
 	num := StringToInt64NotErr(numString)
 	return int32(num)
@@ -17,7 +22,7 @@ func StringToInt32NotErr(numString string) int32 {
 func StringToInt64NotErr(numString string) int64 {
 	num, err := strconv.ParseInt(numString, 10, 64)
 	if err != nil {
-		log.Error("字符串转int64", zap.Any("numString", numString))
+		log.Errorf("StringToInt64NotErr error, numString:%s, err:%v", numString, err)
 		return 0
 	}
 	return num
@@ -54,7 +59,7 @@ func RespCodeToInt32(code interface{}) int32 {
 	case float32:
 		return int32(code.(float32))
 	default:
-		log.Error("is an unknown type.", zap.Any("code", code))
+		log.Errorf("RespCodeToInt32 code:%v is an unknown type", code)
 		return int32(-1)
 	}
 }
